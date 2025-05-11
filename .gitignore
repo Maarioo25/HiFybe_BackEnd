@@ -1,0 +1,20 @@
+# Archivos y carpetas que contienen secretos
+.env
+.env.*
+*.env
+
+# Node
+node_modules
+
+# Logs y temporales
+npm-debug.log*
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Editor y sistema
+.vscode/
+.idea/
+.DS_Store
