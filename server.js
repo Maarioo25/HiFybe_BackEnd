@@ -145,7 +145,7 @@ app.use('/amistades', require('./src/routes/amistadesRoutes'));
 app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
 app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
 
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
