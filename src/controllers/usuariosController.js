@@ -175,7 +175,7 @@ exports.googleCallback = async (req, res) => {
       req.user.ultima_conexion = Date.now();
       await req.user.save();
       emitirTokenYCookie(req.user, res);
-      res.redirect(`${process.env.FRONTEND_URL}/auth/success`);
+      res.redirect(`${process.env.FRONTEND_URL}`);
     } catch (err) {
       console.error('ERROR CALLBACK:', err);
       res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
