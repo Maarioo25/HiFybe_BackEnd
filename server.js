@@ -19,7 +19,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://mariobueno.info',
-  'https://www.mariobueno.info'
+  'https://www.mariobueno.info',
+  'https://api.mariobueno.info'
 ];
 
 app.use(cors({
@@ -38,7 +39,7 @@ app.use(passport.initialize());
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: '/usuarios/google/callback'
+  callbackURL: 'https://api.mariobueno.info/usuarios/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const User = require('./src/models/usuario');
