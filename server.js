@@ -14,16 +14,26 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
-app.use(cookieParser());
+// ✅ CORS configurado correctamente
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://mariobueno.info',
+  'https://www.mariobueno.info'
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+app.use(express.json());
+app.use(cookieParser());
 app.use(passport.initialize());
+
+// ... (estrategias de Google y Spotify sin cambios)
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -38,18 +48,9 @@ passport.use(new GoogleStrategy({
     let user = await User.findOne({ email });
 
     if (user) {
-      if (!user.googleId) {
-        user.googleId = profile.id;
-      }
-
-      if (!user.nombre || user.nombre === 'Usuario') {
-        user.nombre = profile.name?.givenName || user.nombre;
-      }
-
-      if (!user.apellidos || user.apellidos === 'Desconocido') {
-        user.apellidos = profile.name?.familyName || user.apellidos;
-      }
-
+      if (!user.googleId) user.googleId = profile.id;
+      if (!user.nombre || user.nombre === 'Usuario') user.nombre = profile.name?.givenName || user.nombre;
+      if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = profile.name?.familyName || user.apellidos;
       await user.save();
     } else {
       user = new User({
@@ -70,7 +71,6 @@ passport.use(new GoogleStrategy({
   }
 }));
 
-
 passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -88,18 +88,9 @@ passport.use(new SpotifyStrategy({
     const apellidosSpotify = nameParts.slice(1).join(' ') || 'Desconocido';
 
     if (user) {
-      if (!user.spotifyId) {
-        user.spotifyId = profile.id;
-      }
-
-      if (!user.nombre || user.nombre === 'Usuario') {
-        user.nombre = nombreSpotify;
-      }
-
-      if (!user.apellidos || user.apellidos === 'Desconocido') {
-        user.apellidos = apellidosSpotify;
-      }
-
+      if (!user.spotifyId) user.spotifyId = profile.id;
+      if (!user.nombre || user.nombre === 'Usuario') user.nombre = nombreSpotify;
+      if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = apellidosSpotify;
       await user.save();
     } else {
       user = new User({
@@ -120,7 +111,6 @@ passport.use(new SpotifyStrategy({
   }
 }));
 
-
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
@@ -129,7 +119,7 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'Documentación de la API con Swagger'
     },
-    servers: [{ url: 'http://127.0.0.1:5000', description: 'API Local' }]
+    servers: [{ url: 'https://api.mariobueno.info', description: 'API Pública' }]
   },
   apis: ['./src/routes/*.js']
 };
@@ -137,6 +127,7 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Rutas principales
 app.use('/usuarios', require('./src/routes/usuariosRoutes'));
 app.use('/canciones', require('./src/routes/cancionesRoutes'));
 app.use('/playlists', require('./src/routes/playlistsRoutes'));
@@ -145,15 +136,16 @@ app.use('/amistades', require('./src/routes/amistadesRoutes'));
 app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
 app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
 
+// Conexión a Mongo
 mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
   .then(() => {
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT,'0.0.0.0', () => {
-      console.log(`Servidor corriendo en http://127.0.0.1:${PORT}`);
-      console.log(`Swagger disponible en http://127.0.0.1:${PORT}/docs`);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor corriendo en https://api.mariobueno.info`);
+      console.log(`Swagger disponible en https://api.mariobueno.info/docs`);
     });
   })
   .catch(err => {
