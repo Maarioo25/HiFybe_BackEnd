@@ -24,6 +24,7 @@ const emitirTokenYCookie = (usuario, res) => {
     httpOnly: true,
     sameSite: 'None',
     secure: true,
+    domain: '.mariobueno.info',
     maxAge: 7 * 24 * 60 * 60 * 1000 //<-- Días / Horas / Minutos / Segundos / Milisegundos
   });
   return token;
