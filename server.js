@@ -106,7 +106,7 @@ passport.use(new SpotifyStrategy({
       await user.save();
     }
 
-    done(null, user);
+    done(null, user, { accessToken, refreshToken });
   } catch (err) {
     done(err, null);
   }
