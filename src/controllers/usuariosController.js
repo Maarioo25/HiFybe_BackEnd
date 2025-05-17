@@ -204,17 +204,30 @@ exports.spotifyCallback = async (req, res) => {
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
   }
   try {
-    // Actualiza última conexión, emite cookie+token
+    // Actualiza última conexión y guarda el usuario
     req.user.ultima_conexion = Date.now();
     await req.user.save();
 
+    // Primero emitimos tu JWT o la cookie de sesión
     emitirTokenYCookie(req.user, res);
-    res.redirect(process.env.FRONTEND_URL);
+
+    // Ahora extraemos los tokens de Spotify de req.authInfo
+    // (passport-spotify los pasa ahí si en tu verify hacías: done(null, user, { accessToken, refreshToken }))
+    const { accessToken, refreshToken } = req.authInfo || {};
+
+    // Construimos la URL de redirección con los tokens como query params
+    const redirectUrl = new URL(process.env.FRONTEND_URL);
+    if (accessToken)    redirectUrl.searchParams.set('spotify_token',   accessToken);
+    if (refreshToken)   redirectUrl.searchParams.set('spotify_refresh', refreshToken);
+
+    // Redirigimos al cliente
+    return res.redirect(redirectUrl.toString());
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
-    res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+    return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
+
 
 exports.spotifyAuthFailureHandler = (req, res) => {
   console.error('Autenticación con Spotify fallida.', req.query.error);
