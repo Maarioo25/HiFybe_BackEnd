@@ -236,12 +236,19 @@ exports.spotifyAuthFailureHandler = (req, res) => {
 
 // ===================== LOGOUT ===================== //
 
+// controllers/authController.js
 exports.logoutUser = (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
-    sameSite: 'none',
-    secure: true
+    secure: true,
+    sameSite: 'None',
+    domain: '.mariobueno.info',  
+    path: '/'                   
   });
-  res.json({ mensaje: 'Sesión cerrada exitosamente' });
+  return res
+    .status(200)
+    .json({ mensaje: 'Sesión cerrada exitosamente' });
 };
+
+
 
