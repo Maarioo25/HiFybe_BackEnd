@@ -19,7 +19,4 @@ const usuarioSchema = new mongoose.Schema({
   collation: { locale: 'es', strength: 2 }
 });
 
-usuarioSchema.index({ googleId: 1 }, { unique: true, sparse: true });
-usuarioSchema.index({ spotifyId: 1 }, { unique: true, sparse: true });
-
 module.exports = mongoose.model('Usuario', usuarioSchema);
