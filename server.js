@@ -150,6 +150,7 @@ passport.use(new SpotifyStrategy({
       });
       await usuario.save();
     }
+    usuario.accessToken = accessToken;
 
     done(null, usuario); // ✅ req.user estará bien definido
   } catch (err) {

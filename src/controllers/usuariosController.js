@@ -219,13 +219,22 @@ exports.spotifyCallback = async (req, res) => {
 
     req.user.ultima_conexion = Date.now();
     await req.user.save();
+
+    const spotifyAccessToken = req.user.accessToken;
+    if (!spotifyAccessToken) {
+      console.error('No se encontró accessToken en req.user');
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_spotify_token`);
+    }
+
     emitirTokenYCookie(req.user, res);
-    return res.redirect(process.env.FRONTEND_URL);
+
+    return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${spotifyAccessToken}`);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
+
 
 
 
