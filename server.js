@@ -34,6 +34,23 @@
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
 
+    // Serializar: guarda solo el ID del usuario en la sesión
+  passport.serializeUser((user, done) => {
+    done(null, user._id); // o user.id
+  });
+
+  // Deserializar: busca el usuario por ID en cada request autenticado
+  passport.deserializeUser(async (id, done) => {
+    try {
+      const User = require('./src/models/usuario');
+      const user = await User.findById(id).select('-password'); // sin password
+      done(null, user);
+    } catch (err) {
+      done(err, null);
+    }
+  });
+
+
   app.use(session({
     secret: process.env.JWT_SECRET || 'mi_secreto_super_seguro',
     resave: false,
@@ -96,22 +113,22 @@
 
 
   passport.use(new SpotifyStrategy({
-  clientID: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-  passReqToCallback: true
-}, async (req, accessToken, refreshToken, profile, done) => {
-  console.log('[SpotifyStrategy] Empezando verificación');
-  console.log('[SpotifyStrategy] accessToken:', accessToken);
+    clientID: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+    passReqToCallback: true
+  }, async (req, accessToken, refreshToken, profile, done) => {
+    console.log('[SpotifyStrategy] Empezando verificación');
+    console.log('[SpotifyStrategy] accessToken:', accessToken);
 
-  try {
-    // Forzar una prueba de conexión (simula lo que passport-spotify haría)
-    const response = await fetch('https://api.spotify.com/v1/me', {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
+    try {
+      // Forzar una prueba de conexión (simula lo que passport-spotify haría)
+      const response = await fetch('https://api.spotify.com/v1/me', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
 
-    const data = await response.json();
-    console.log('[SpotifyStrategy] Respuesta directa de Spotify:', data);
+      const data = await response.json();
+      console.log('[SpotifyStrategy] Respuesta directa de Spotify:', data);
       const User = require('./src/models/usuario');
       const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
 
