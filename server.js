@@ -19,7 +19,6 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://mariobueno.info',
-  'https://www.mariobueno.info',
   'https://api.mariobueno.info'
 ];
 
@@ -79,7 +78,9 @@ passport.use(new SpotifyStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const User = require('./src/models/usuario');
-    const email = profile.emails?.[0]?.value ?? `No definido`;
+    const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
+    console.log('[Spotify] Profile recibido:', profile);
+
 
     let user = await User.findOne({ email });
 

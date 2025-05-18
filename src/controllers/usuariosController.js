@@ -191,13 +191,15 @@ exports.googleAuthFailureHandler = (req, res) => {
 
 // ===================== SPOTIFY OAUTH ===================== //
 
-exports.spotifyAuth = passport.authenticate('spotify', { scope: [
+exports.spotifyAuth = passport.authenticate('spotify', { 
+  scope: [
   'streaming',
   'user-read-playback-state',
   'user-modify-playback-state',
   'user-read-email',
-  'user-read-private'
-], showDialog: true });
+  'user-read-private'], 
+  showDialog: true 
+});
 
 exports.spotifyCallback = async (req, res) => {
   if (!req.user) {
