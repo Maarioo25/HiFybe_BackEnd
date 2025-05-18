@@ -135,6 +135,10 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Rutas principales
+app.get('/', (req, res) => {
+  res.send('API HiFybe activa 🚀');
+});
+
 app.use('/usuarios', require('./src/routes/usuariosRoutes'));
 app.use('/canciones', require('./src/routes/cancionesRoutes'));
 app.use('/playlists', require('./src/routes/playlistsRoutes'));
