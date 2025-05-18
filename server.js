@@ -77,9 +77,14 @@ passport.use(new SpotifyStrategy({
   callbackURL: process.env.SPOTIFY_CALLBACK_URL
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    if (!profile) {
+      console.error('[Spotify] No se recibió perfil de usuario.');
+      return done(new Error('Perfil no recibido de Spotify'), null);
+    }
+    console.log('[Spotify] Profile recibido:', profile);
     const User = require('./src/models/usuario');
     const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
-    console.log('[Spotify] Profile recibido:', profile);
+    
 
 
     let user = await User.findOne({ email });
