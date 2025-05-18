@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const passport = require('passport');
 
+const User = require('../models/usuario');
+
 // ===================== HELPERS ===================== //
 
 const limpiarUsuario = (usuario) => {
@@ -19,14 +21,21 @@ const limpiarUsuario = (usuario) => {
 };
 
 const emitirTokenYCookie = (usuario, res) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('Falta JWT_SECRET en variables de entorno');
+  }
+
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
   res.cookie('token', token, {
     httpOnly: true,
     sameSite: 'None',
     secure: true,
     domain: '.mariobueno.info',
-    maxAge: 7 * 24 * 60 * 60 * 1000 //<-- Días / Horas / Minutos / Segundos / Milisegundos
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
   });
+
   return token;
 };
 
@@ -200,15 +209,27 @@ exports.spotifyAuth = passport.authenticate('spotify', {
   'user-read-private']
 });
 
+
 exports.spotifyCallback = async (req, res) => {
   if (!req.user) {
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
   }
-  try {
-    req.user.ultima_conexion = Date.now();
-    await req.user.save();
 
-    emitirTokenYCookie(req.user, res);
+  try {
+    console.log('Usuario recibido en callback:', req.user);
+    console.log('Es instancia de Mongoose?', typeof req.user.save === 'function');
+
+
+    const usuario = await User.findById(req.user._id);
+
+    if (!usuario) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=user_not_found`);
+    }
+
+    usuario.ultima_conexion = Date.now();
+    await usuario.save();
+
+    emitirTokenYCookie(usuario, res);
 
     return res.redirect(process.env.FRONTEND_URL);
   } catch (err) {
