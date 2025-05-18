@@ -1,6 +1,7 @@
 // routes/usuarios.js
 const express = require('express');
 const passport = require('passport');
+const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -215,7 +216,7 @@ router.get('/spotify/failure', spotifyAuthFailureHandler);
  *       500:
  *         description: Error del servidor.
  */
-router.get('/me', getCurrentUser);
+router.get('/me', requireAuth, getCurrentUser);
 
 /**
  * @swagger
@@ -230,7 +231,7 @@ router.get('/me', getCurrentUser);
  *       500:
  *         description: Error al cerrar sesión.
  */
-router.post('/logout', logoutUser);
+router.post('/logout', requireAuth, logoutUser);
 
 /**
  * @swagger
@@ -247,7 +248,7 @@ router.post('/logout', logoutUser);
  *       401:
  *         description: No autenticado.
  */
-router.get('/', obtenerUsuarios);
+router.get('/', requireAuth, obtenerUsuarios);
 
 /**
  * @swagger
@@ -275,7 +276,7 @@ router.get('/', obtenerUsuarios);
  *       404:
  *         description: No se encontró un usuario con ese ID.
  */
-router.get('/:id', obtenerUsuarioPorId);
+router.get('/:id', requireAuth, obtenerUsuarioPorId);
 
 /**
  * @swagger
@@ -322,7 +323,7 @@ router.get('/:id', obtenerUsuarioPorId);
  *       404:
  *         description: No se encontró un usuario con ese ID.
  */
-router.put('/:id', actualizarUsuario);
+router.put('/:id', requireAuth, actualizarUsuario);
 
 /**
  * @swagger
@@ -348,6 +349,6 @@ router.put('/:id', actualizarUsuario);
  *       404:
  *         description: Usuario no encontrado.
  */
-router.delete('/:id', eliminarUsuario);
+router.delete('/:id', requireAuth, eliminarUsuario);
 
 module.exports = router;
