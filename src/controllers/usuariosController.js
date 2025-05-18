@@ -197,8 +197,7 @@ exports.spotifyAuth = passport.authenticate('spotify', {
   'user-read-playback-state',
   'user-modify-playback-state',
   'user-read-email',
-  'user-read-private'], 
-  showDialog: true 
+  'user-read-private']
 });
 
 exports.spotifyCallback = async (req, res) => {
