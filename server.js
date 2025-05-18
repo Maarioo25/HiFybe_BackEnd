@@ -74,18 +74,12 @@ passport.use(new GoogleStrategy({
 passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  callbackURL: process.env.SPOTIFY_CALLBACK_URL
+  callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+  passReqToCallback: true
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    if (!profile) {
-      console.error('[Spotify] No se recibió perfil de usuario.');
-      return done(new Error('Perfil no recibido de Spotify'), null);
-    }
-    console.log('[Spotify] Profile recibido:', profile);
     const User = require('./src/models/usuario');
     const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
-    
-
 
     let user = await User.findOne({ email });
 
@@ -111,7 +105,8 @@ passport.use(new SpotifyStrategy({
       await user.save();
     }
 
-    done(null, user, { accessToken, refreshToken });
+    req.spotifyTokens = { accessToken, refreshToken };
+    done(null, user);
   } catch (err) {
     console.error('[SpotifyStrategy] Error en verify callback:', err);
     done(err, null);
