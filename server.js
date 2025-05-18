@@ -86,13 +86,32 @@
     }
   }));
 
+  process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION:', err);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('UNHANDLED REJECTION:', reason);
+  });
+
+
   passport.use(new SpotifyStrategy({
-    clientID: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-    passReqToCallback: true  // ✅ Esto habilita el paso de `req`
-  }, async (req, accessToken, refreshToken, profile, done) => {
-    try {
+  clientID: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+  passReqToCallback: true
+}, async (req, accessToken, refreshToken, profile, done) => {
+  console.log('[SpotifyStrategy] Empezando verificación');
+  console.log('[SpotifyStrategy] accessToken:', accessToken);
+
+  try {
+    // Forzar una prueba de conexión (simula lo que passport-spotify haría)
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const data = await response.json();
+    console.log('[SpotifyStrategy] Respuesta directa de Spotify:', data);
       const User = require('./src/models/usuario');
       const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
 
