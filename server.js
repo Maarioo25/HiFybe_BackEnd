@@ -79,8 +79,7 @@ passport.use(new SpotifyStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const User = require('./src/models/usuario');
-    const email = profile.emails?.[0]?.value;
-    if (!email) return done(new Error('No se encontró un email en el perfil de Spotify'), null);
+    const email = profile.emails?.[0]?.value ?? `No definido`;
 
     let user = await User.findOne({ email });
 
@@ -108,6 +107,7 @@ passport.use(new SpotifyStrategy({
 
     done(null, user, { accessToken, refreshToken });
   } catch (err) {
+    console.error('[SpotifyStrategy] Error en verify callback:', err);
     done(err, null);
   }
 }));
