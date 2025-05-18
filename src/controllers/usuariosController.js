@@ -211,23 +211,21 @@ exports.spotifyAuth = passport.authenticate('spotify', {
 
 
 exports.spotifyCallback = async (req, res) => {
-  if (!req.user) {
-    return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
-  }
-
   try {
-    if (!usuario) {
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=user_not_found`);
+    if (!req.user) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
     }
 
-    emitirTokenYCookie(usuario, res);
-
+    req.user.ultima_conexion = Date.now();
+    await req.user.save();
+    emitirTokenYCookie(req.user, res);
     return res.redirect(process.env.FRONTEND_URL);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
+
 
 
 

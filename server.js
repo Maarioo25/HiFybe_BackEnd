@@ -1,23 +1,19 @@
-  const express = require('express');
-  const mongoose = require('mongoose');
-  const dotenv = require('dotenv');
-  const cors = require('cors');
-  const cookieParser = require('cookie-parser');
-  const passport = require('passport');
-  const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
-  const SpotifyStrategy = require('passport-spotify').Strategy;
-  const bcrypt = require('bcryptjs');
-  const swaggerUi = require('swagger-ui-express');
-  const swaggerJsdoc = require('swagger-jsdoc');
-  const session = require('express-session');
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const passport = require('passport');
+const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
+const SpotifyStrategy = require('passport-spotify').Strategy;
+const bcrypt = require('bcryptjs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const session = require('express-session');
 
+dotenv.config();
 
-  dotenv.config();
-
-
-  
-
-  const app = express();
+const app = express();
 
   // ✅ CORS configurado correctamente
   const allowedOrigins = [
@@ -67,7 +63,7 @@
   app.use(passport.initialize());
 
 
-  passport.use(new GoogleStrategy({
+passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL
@@ -98,74 +94,69 @@
       }
 
       done(null, user);
-    } catch (err) {
-      done(err, null);
+  } catch (err) {
+    done(err, null);
+  }
+}));
+
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
+
+const fetch = require('node-fetch');
+
+passport.use(new SpotifyStrategy({
+  clientID: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+  passReqToCallback: true,
+  skipUserProfile: true
+}, async (req, accessToken, refreshToken, profile, done) => {
+  try {
+    const User = require('./src/models/usuario');
+
+    // 👇 Llamada manual al perfil
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Spotify] Error al obtener perfil:', response.status, errorText);
+      return done(new Error('No se pudo obtener el perfil de Spotify'), null);
     }
-  }));
 
-  process.on('uncaughtException', (err) => {
-    console.error('UNCAUGHT EXCEPTION:', err);
-  });
+    const userData = await response.json();
+    console.log('[Spotify] Perfil recibido:', userData);
 
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('UNHANDLED REJECTION:', reason);
-  });
+    const email = userData.email ?? `${userData.id}@spotify.local`;
 
+    // 👇 Buscar o crear usuario
+    let usuario = await User.findOne({ email });
 
-  passport.use(new SpotifyStrategy({
-    clientID: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-    passReqToCallback: true
-  }, async (req, accessToken, refreshToken, profile, done) => {
-    console.log('[SpotifyStrategy] Empezando verificación');
-    console.log('[SpotifyStrategy] accessToken:', accessToken);
-
-    try {
-      // Forzar una prueba de conexión (simula lo que passport-spotify haría)
-      const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: { Authorization: `Bearer ${accessToken}` }
+    if (!usuario) {
+      usuario = new User({
+        spotifyId: userData.id,
+        email: email,
+        nombre: userData.display_name || 'Usuario',
+        apellidos: 'Desconocido',
+        password: await require('bcryptjs').hash(Math.random().toString(36), 10),
+        foto_perfil: userData.images?.[0]?.url || '',
+        auth_proveedor: 'spotify'
       });
-
-      const data = await response.json();
-      console.log('[SpotifyStrategy] Respuesta directa de Spotify:', data);
-      const User = require('./src/models/usuario');
-      const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
-
-      let user = await User.findOne({ email });
-
-      const nameParts = profile.displayName?.split(' ') || ['Usuario'];
-      const nombreSpotify = nameParts[0] || 'Usuario';
-      const apellidosSpotify = nameParts.slice(1).join(' ') || 'Desconocido';
-
-      if (user) {
-        if (!user.spotifyId) user.spotifyId = profile.id;
-        if (!user.nombre || user.nombre === 'Usuario') user.nombre = nombreSpotify;
-        if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = apellidosSpotify;
-        await user.save();
-      } else {
-        user = new User({
-          spotifyId: profile.id,
-          nombre: nombreSpotify,
-          apellidos: apellidosSpotify,
-          email,
-          foto_perfil: profile.photos?.[0] || '',
-          password: await bcrypt.hash(Math.random().toString(36), 10),
-          auth_proveedor: 'spotify'
-        });
-        await user.save();
-      }
-
-      // Ahora puedes usar `req.session`
-      console.log(req.session);
-      req.session = req.session || {};
-
-      done(null, user);
-    } catch (err) {
-      console.error('[SpotifyStrategy] Error en verify callback:', err);
-      done(err, null);
+      await usuario.save();
     }
-  }));
+
+    done(null, usuario); // ✅ req.user estará bien definido
+  } catch (err) {
+    console.error('[Spotify] Error manual al obtener perfil:', err);
+    done(err, null);
+  }
+}));
 
 
   const swaggerOptions = {
