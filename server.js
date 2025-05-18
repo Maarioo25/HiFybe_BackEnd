@@ -34,7 +34,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// ... (estrategias de Google y Spotify sin cambios)
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -75,8 +74,7 @@ passport.use(new GoogleStrategy({
 passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-  passReqToCallback: true
+  callbackURL: process.env.SPOTIFY_CALLBACK_URL
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const User = require('./src/models/usuario');
@@ -106,8 +104,8 @@ passport.use(new SpotifyStrategy({
       await user.save();
     }
     
-    req.session = req.session || {};  
-    req.spotifyTokens = { accessToken, refreshToken };
+    console.log(req.session.toString());
+    req.session = req.session || {};
     done(null, user);
   } catch (err) {
     console.error('[SpotifyStrategy] Error en verify callback:', err);
