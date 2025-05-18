@@ -90,19 +90,19 @@ exports.loginUsuario = async (req, res) => {
 
 // ===================== AUTENTICACIÓN ACTUAL ===================== //
 
-exports.getCurrentUser = (req, res) => {
-  if (req.user) {
-    const usuarioLimpio = {
-      _id: req.user._id,
-      nombre: req.user.nombre,
-      apellidos: req.user.apellidos,
-      email: req.user.email,
-      foto_perfil: req.user.foto_perfil,
-      auth_proveedor: req.user.auth_proveedor
-    };
-    return res.json({ user: usuarioLimpio });
-  } else {
-    return res.status(401).json({ mensaje: 'No autenticado' });
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+
+    const spotify = req.session?.spotify || null;
+
+    res.json({
+      user,
+      spotifyAccessToken: spotify?.accessToken || null,
+      spotifyRefreshToken: spotify?.refreshToken || null
+    });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al obtener el usuario actual' });
   }
 };
 
@@ -211,18 +211,13 @@ exports.spotifyCallback = async (req, res) => {
 
     emitirTokenYCookie(req.user, res);
 
-    const { accessToken, refreshToken } = req.spotifyTokens || {};
-
-    const redirectUrl = new URL(process.env.FRONTEND_URL);
-    if (accessToken)    redirectUrl.searchParams.set('spotify_token',   accessToken);
-    if (refreshToken)   redirectUrl.searchParams.set('spotify_refresh', refreshToken);
-
-    return res.redirect(redirectUrl.toString());
+    return res.redirect(process.env.FRONTEND_URL);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
+
 
 
 
