@@ -1,156 +1,175 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const passport = require('passport');
-const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
-const SpotifyStrategy = require('passport-spotify').Strategy;
-const bcrypt = require('bcryptjs');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
+  const express = require('express');
+  const mongoose = require('mongoose');
+  const dotenv = require('dotenv');
+  const cors = require('cors');
+  const cookieParser = require('cookie-parser');
+  const passport = require('passport');
+  const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
+  const SpotifyStrategy = require('passport-spotify').Strategy;
+  const bcrypt = require('bcryptjs');
+  const swaggerUi = require('swagger-ui-express');
+  const swaggerJsdoc = require('swagger-jsdoc');
+  const session = require('express-session');
 
 
-dotenv.config();
-
-const app = express();
-
-// ✅ CORS configurado correctamente
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'https://mariobueno.info',
-  'https://api.mariobueno.info'
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.use(express.json());
-app.use(cookieParser());
-app.use(passport.initialize());
+  dotenv.config();
 
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    const User = require('./src/models/usuario');
-    const email = profile.emails?.[0]?.value;
-    if (!email) return done(new Error('No se encontró un email en el perfil de Google'), null);
+  
 
-    let user = await User.findOne({ email });
+  const app = express();
 
-    if (user) {
-      if (!user.googleId) user.googleId = profile.id;
-      if (!user.nombre || user.nombre === 'Usuario') user.nombre = profile.name?.givenName || user.nombre;
-      if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = profile.name?.familyName || user.apellidos;
-      await user.save();
-    } else {
-      user = new User({
-        googleId: profile.id,
-        nombre: profile.name?.givenName || 'Usuario',
-        apellidos: profile.name?.familyName || 'Desconocido',
-        email,
-        foto_perfil: profile.photos?.[0]?.value || '',
-        password: await bcrypt.hash(Math.random().toString(36), 10),
-        auth_proveedor: 'google'
-      });
-      await user.save();
+  // ✅ CORS configurado correctamente
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://mariobueno.info',
+    'https://api.mariobueno.info'
+  ];
+
+  app.use(cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+
+  app.use(session({
+    secret: process.env.JWT_SECRET || 'mi_secreto_super_seguro',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: true,
+      sameSite: 'none',
+      httpOnly: true
     }
+  }));
 
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
-}));
+  app.use(express.json());
+  app.use(cookieParser());
+  app.use(passport.initialize());
 
-passport.use(new SpotifyStrategy({
-  clientID: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  callbackURL: process.env.SPOTIFY_CALLBACK_URL
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    const User = require('./src/models/usuario');
-    const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
 
-    let user = await User.findOne({ email });
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const User = require('./src/models/usuario');
+      const email = profile.emails?.[0]?.value;
+      if (!email) return done(new Error('No se encontró un email en el perfil de Google'), null);
 
-    const nameParts = profile.displayName?.split(' ') || ['Usuario'];
-    const nombreSpotify = nameParts[0] || 'Usuario';
-    const apellidosSpotify = nameParts.slice(1).join(' ') || 'Desconocido';
+      let user = await User.findOne({ email });
 
-    if (user) {
-      if (!user.spotifyId) user.spotifyId = profile.id;
-      if (!user.nombre || user.nombre === 'Usuario') user.nombre = nombreSpotify;
-      if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = apellidosSpotify;
-      await user.save();
-    } else {
-      user = new User({
-        spotifyId: profile.id,
-        nombre: nombreSpotify,
-        apellidos: apellidosSpotify,
-        email,
-        foto_perfil: profile.photos?.[0] || '',
-        password: await bcrypt.hash(Math.random().toString(36), 10),
-        auth_proveedor: 'spotify'
-      });
-      await user.save();
+      if (user) {
+        if (!user.googleId) user.googleId = profile.id;
+        if (!user.nombre || user.nombre === 'Usuario') user.nombre = profile.name?.givenName || user.nombre;
+        if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = profile.name?.familyName || user.apellidos;
+        await user.save();
+      } else {
+        user = new User({
+          googleId: profile.id,
+          nombre: profile.name?.givenName || 'Usuario',
+          apellidos: profile.name?.familyName || 'Desconocido',
+          email,
+          foto_perfil: profile.photos?.[0]?.value || '',
+          password: await bcrypt.hash(Math.random().toString(36), 10),
+          auth_proveedor: 'google'
+        });
+        await user.save();
+      }
+
+      done(null, user);
+    } catch (err) {
+      done(err, null);
     }
-    
-    console.log(req.session.toString());
-    req.session = req.session || {};
-    done(null, user);
-  } catch (err) {
-    console.error('[SpotifyStrategy] Error en verify callback:', err);
-    done(err, null);
-  }
-}));
+  }));
 
-const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'API de HiFybe',
-      version: '1.0.0',
-      description: 'Documentación de la API con Swagger'
+  passport.use(new SpotifyStrategy({
+    clientID: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+    passReqToCallback: true  // ✅ Esto habilita el paso de `req`
+  }, async (req, accessToken, refreshToken, profile, done) => {
+    try {
+      const User = require('./src/models/usuario');
+      const email = profile.emails?.[0]?.value ?? `${profile.id}@spotify.local`;
+
+      let user = await User.findOne({ email });
+
+      const nameParts = profile.displayName?.split(' ') || ['Usuario'];
+      const nombreSpotify = nameParts[0] || 'Usuario';
+      const apellidosSpotify = nameParts.slice(1).join(' ') || 'Desconocido';
+
+      if (user) {
+        if (!user.spotifyId) user.spotifyId = profile.id;
+        if (!user.nombre || user.nombre === 'Usuario') user.nombre = nombreSpotify;
+        if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = apellidosSpotify;
+        await user.save();
+      } else {
+        user = new User({
+          spotifyId: profile.id,
+          nombre: nombreSpotify,
+          apellidos: apellidosSpotify,
+          email,
+          foto_perfil: profile.photos?.[0] || '',
+          password: await bcrypt.hash(Math.random().toString(36), 10),
+          auth_proveedor: 'spotify'
+        });
+        await user.save();
+      }
+
+      // Ahora puedes usar `req.session`
+      console.log(req.session);
+      req.session = req.session || {};
+
+      done(null, user);
+    } catch (err) {
+      console.error('[SpotifyStrategy] Error en verify callback:', err);
+      done(err, null);
+    }
+  }));
+
+
+  const swaggerOptions = {
+    swaggerDefinition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'API de HiFybe',
+        version: '1.0.0',
+        description: 'Documentación de la API con Swagger'
+      },
+      servers: [{ url: 'https://api.mariobueno.info', description: 'API Pública' }]
     },
-    servers: [{ url: 'https://api.mariobueno.info', description: 'API Pública' }]
-  },
-  apis: ['./src/routes/*.js']
-};
+    apis: ['./src/routes/*.js']
+  };
 
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+  const swaggerDocs = swaggerJsdoc(swaggerOptions);
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// Rutas principales
-app.get('/', (req, res) => {
-  res.send('API HiFybe activa 🚀');
-});
-
-app.use('/usuarios', require('./src/routes/usuariosRoutes'));
-app.use('/canciones', require('./src/routes/cancionesRoutes'));
-app.use('/playlists', require('./src/routes/playlistsRoutes'));
-app.use('/reproducciones', require('./src/routes/reproduccionesRoutes'));
-app.use('/amistades', require('./src/routes/amistadesRoutes'));
-app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
-app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
-
-// Conexión a Mongo
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Servidor corriendo en https://api.mariobueno.info`);
-      console.log(`Swagger disponible en https://api.mariobueno.info/docs`);
-    });
-  })
-  .catch(err => {
-    console.error('Error conectando a MongoDB:', err);
+  // Rutas principales
+  app.get('/', (req, res) => {
+    res.send('API HiFybe activa 🚀');
   });
+
+  app.use('/usuarios', require('./src/routes/usuariosRoutes'));
+  app.use('/canciones', require('./src/routes/cancionesRoutes'));
+  app.use('/playlists', require('./src/routes/playlistsRoutes'));
+  app.use('/reproducciones', require('./src/routes/reproduccionesRoutes'));
+  app.use('/amistades', require('./src/routes/amistadesRoutes'));
+  app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
+  app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
+
+  // Conexión a Mongo
+  mongoose.connect(process.env.MONGO_URL)
+    .then(() => {
+      const PORT = process.env.PORT || 5000;
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Servidor corriendo en https://api.mariobueno.info`);
+        console.log(`Swagger disponible en https://api.mariobueno.info/docs`);
+      });
+    })
+    .catch(err => {
+      console.error('Error conectando a MongoDB:', err);
+    });
