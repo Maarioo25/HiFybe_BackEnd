@@ -8,6 +8,7 @@ const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const bcrypt = require('bcryptjs');
 const swaggerUi = require('swagger-ui-express');
+const jwt = require('jsonwebtoken');
 const swaggerJsdoc = require('swagger-jsdoc');
 const session = require('express-session');
 
