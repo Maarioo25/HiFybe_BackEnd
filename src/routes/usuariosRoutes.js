@@ -26,8 +26,7 @@ const {
 
 
   getCurrentUser,
-  logoutUser,
-  spotifyLinkCallback
+  logoutUser
 } = require('../controllers/usuariosController');
 
 /**
