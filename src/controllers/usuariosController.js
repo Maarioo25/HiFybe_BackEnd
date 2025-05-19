@@ -170,6 +170,56 @@ exports.eliminarUsuario = async (req, res) => {
   }
 };
 
+// ===================== GEOLOCALIZACIÓN ===================== //
+
+exports.actualizarUbicacion = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    const userId = req.usuario._id;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitud y longitud requeridas' });
+    }
+
+    await Usuario.findByIdAndUpdate(userId, {
+      ubicacion_lat: latitude,
+      ubicacion_lon: longitude,
+      ubicacion: {
+        type: 'Point',
+        coordinates: [longitude, latitude]
+      },
+      ultima_conexion: new Date()
+    });
+
+    res.status(200).json({ mensaje: 'Ubicación actualizada' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error actualizando ubicación' });
+  }
+};
+
+exports.obtenerUsuariosCercanos = async (req, res) => {
+  try {
+    const { latitude, longitude, radio = 10 } = req.query; // radio en km
+
+    const usuarios = await Usuario.find({
+      ubicacion: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+          $maxDistance: radio * 1000 // metros
+        }
+      }
+    }).select('nombre apellidos foto_perfil ubicacion');
+
+    res.status(200).json(usuarios);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error buscando usuarios cercanos' });
+  }
+};
+
+
+
 // ===================== GOOGLE OAUTH ===================== //
 
 exports.googleAuth = passport.authenticate('google', {

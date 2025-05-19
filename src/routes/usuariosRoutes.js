@@ -25,6 +25,10 @@ const {
   spotifyLinkCallback,
 
 
+  actualizarUbicacion,
+  obtenerUsuariosCercanos,
+
+
   getCurrentUser,
   logoutUser
 } = require('../controllers/usuariosController');
@@ -255,6 +259,34 @@ router.get('/me', requireAuth, getCurrentUser);
  *         description: Error al cerrar sesión.
  */
 router.post('/logout', requireAuth, logoutUser);
+
+/**
+ * @swagger
+ * /usuarios/ubicacion:
+ *   post:
+ *     summary: Actualiza la ubicación del usuario
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               latitude:
+ *                 type: number
+ *               longitude:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Ubicación actualizada correctamente
+ */
+router.post('/ubicacion', requireAuth, actualizarUbicacion);
+
+
+router.get('/cerca', requireAuth, obtenerUsuariosCercanos);
 
 /**
  * @swagger
