@@ -238,15 +238,15 @@ exports.spotifyCallback = async (req, res) => {
 exports.spotifyLinkCallback = async (req, res) => {
   try {
     if (!req.user || !req.user.spotifyAccessToken) {
-      return res.redirect(`${process.env.FRONTEND_URL}/perfil?error=spotify_link_failed`);
+      return res.redirect(`${process.env.FRONTEND_URL}?error=spotify_link_failed`);
     }
 
     const token = req.user.spotifyAccessToken;
 
-    res.redirect(`${process.env.FRONTEND_URL}/perfil?spotify_token=${token}`);
+    res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${token}`);
   } catch (err) {
     console.error('Error en spotifyLinkCallback:', err);
-    res.redirect(`${process.env.FRONTEND_URL}/perfil?error=server_error`);
+    res.redirect(`${process.env.FRONTEND_URL}?error=server_error`);
   }
 };
 
