@@ -22,10 +22,12 @@ const {
   spotifyAuth, 
   spotifyCallback, 
   spotifyAuthFailureHandler,
+  spotifyLinkCallback,
 
 
   getCurrentUser,
-  logoutUser
+  logoutUser,
+  spotifyLinkCallback
 } = require('../controllers/usuariosController');
 
 /**
