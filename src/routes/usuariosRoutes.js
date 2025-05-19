@@ -177,6 +177,28 @@ router.get(
   spotifyCallback
 );
 
+router.get('/spotify/connect',
+  passport.authenticate('spotify-link', {
+    scope: [
+      'user-read-email',
+      'user-read-private',
+      'user-read-playback-state',
+      'user-modify-playback-state',
+      'streaming'
+    ],
+    session: false
+  })
+);
+
+// Callback después del login de Spotify
+router.get('/spotify/callback-link',
+  passport.authenticate('spotify-link', {
+    failureRedirect: `${process.env.FRONTEND_URL}/perfil?error=spotify_link_failed`,
+    session: false
+  }),
+  spotifyLinkCallback
+);
+
 /**
  * @swagger
  * /usuarios/spotify/failure:

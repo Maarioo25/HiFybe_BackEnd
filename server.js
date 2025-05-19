@@ -159,6 +159,35 @@ passport.use(new SpotifyStrategy({
   }
 }));
 
+passport.use('spotify-link', new SpotifyStrategy({
+  clientID: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  callbackURL: process.env.SPOTIFY_LINK_CALLBACK_URL, 
+  passReqToCallback: true
+}, async (req, accessToken, refreshToken, profile, done) => {
+  try {
+    const User = require('./src/models/usuario');
+
+    // Asegurarte de que el usuario ya está autenticado
+    const userId = req.cookies?.token && jwt.verify(req.cookies.token, process.env.JWT_SECRET)?.id;
+    if (!userId) return done(new Error('Usuario no autenticado'), null);
+
+    const user = await User.findById(userId);
+    if (!user) return done(new Error('Usuario no encontrado'), null);
+
+    // Asociar cuenta de Spotify
+    user.spotifyId = profile.id;
+    user.spotifyAccessToken = accessToken;
+    user.spotifyRefreshToken = refreshToken;
+    await user.save();
+
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+}));
+
+
 
   const swaggerOptions = {
     swaggerDefinition: {
