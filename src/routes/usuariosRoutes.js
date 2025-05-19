@@ -173,7 +173,7 @@ router.get(
   '/spotify/callback',
   passport.authenticate('spotify', {
     failureRedirect: '/usuarios/spotify/failure',
-    session: true
+    session: false
   }),
   spotifyCallback
 );
