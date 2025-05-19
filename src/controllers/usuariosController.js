@@ -175,7 +175,7 @@ exports.eliminarUsuario = async (req, res) => {
 exports.actualizarUbicacion = async (req, res) => {
   try {
     const { latitude, longitude } = req.body;
-    const userId = req.usuario._id;
+    const userId = req.user._id;
 
     if (!latitude || !longitude) {
       return res.status(400).json({ error: 'Latitud y longitud requeridas' });

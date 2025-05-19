@@ -9,7 +9,10 @@ const usuarioSchema = new mongoose.Schema({
   googleId:                   { type: String,  unique: true, sparse: true, trim: true },
   spotifyId:                  { type: String,  unique: true, sparse: true, trim: true },
   biografia:                  { type: String,  default: '' },
+  ubicacion_lat:              { type: Number, default: null },
+  ubicacion_lon:              { type: Number, default: null },
   ubicacion:                  { type: {type: String, enum: ['Point'], default: 'Point' }, coordinates: { type: [Number], index: '2dsphere', default: [0, 0] } },
+  compartir_ubicacion:        { type: Boolean, default: true },
   foto_perfil:                { type: String,  default: '' },
   fecha_registro:             { type: Date,    default: Date.now },
   ultima_conexion:            { type: Date,    default: Date.now },
@@ -17,5 +20,7 @@ const usuarioSchema = new mongoose.Schema({
   collection: 'usuarios',
   collation: { locale: 'es', strength: 2 }
 });
+
+usuarioSchema.index({ ubicacion: '2dsphere' });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);

@@ -285,8 +285,93 @@ router.post('/logout', requireAuth, logoutUser);
  */
 router.post('/ubicacion', requireAuth, actualizarUbicacion);
 
-
+/**
+ * @swagger
+ * /usuarios/cerca:
+ *   get:
+ *     summary: Obtener usuarios cercanos
+ *     description: Devuelve la lista de usuarios que están compartiendo ubicación y se encuentran dentro del radio especificado (en km) de las coordenadas proporcionadas.
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: number
+ *         required: true
+ *         description: Latitud desde la que buscar usuarios cercanos.
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: number
+ *         required: true
+ *         description: Longitud desde la que buscar usuarios cercanos.
+ *       - in: query
+ *         name: radio
+ *         schema:
+ *           type: number
+ *           default: 10
+ *         required: false
+ *         description: Radio de búsqueda en kilómetros. Si no se especifica, se usan 10 km por defecto.
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios cercanos encontrados.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   nombre:
+ *                     type: string
+ *                   apellidos:
+ *                     type: string
+ *                   foto_perfil:
+ *                     type: string
+ *                     description: URL de la foto de perfil.
+ *                   ubicacion:
+ *                     type: object
+ *                     properties:
+ *                       type:
+ *                         type: string
+ *                         example: Point
+ *                       coordinates:
+ *                         type: array
+ *                         items:
+ *                           type: number
+ *                         description: [longitud, latitud]
+ *       400:
+ *         description: Parámetros de consulta inválidos (p.ej., latitud o longitud no numéricos).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       401:
+ *         description: No autenticado o token inválido/expirado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *       500:
+ *         description: Error interno al buscar usuarios cercanos.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 router.get('/cerca', requireAuth, obtenerUsuariosCercanos);
+
 
 /**
  * @swagger
