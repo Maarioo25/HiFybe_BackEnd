@@ -10,7 +10,6 @@ const bcrypt = require('bcryptjs');
 const swaggerUi = require('swagger-ui-express');
 const jwt = require('jsonwebtoken');
 const swaggerJsdoc = require('swagger-jsdoc');
-const session = require('express-session');
 
 dotenv.config();
 
@@ -29,34 +28,6 @@ const app = express();
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
-  }));
-
-    // Serializar: guarda solo el ID del usuario en la sesión
-  passport.serializeUser((user, done) => {
-    done(null, user._id); // o user.id
-  });
-
-  // Deserializar: busca el usuario por ID en cada request autenticado
-  passport.deserializeUser(async (id, done) => {
-    try {
-      const User = require('./src/models/usuario');
-      const user = await User.findById(id).select('-password'); // sin password
-      done(null, user);
-    } catch (err) {
-      done(err, null);
-    }
-  });
-
-
-  app.use(session({
-    secret: process.env.JWT_SECRET || 'mi_secreto_super_seguro',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: true,
-      sameSite: 'none',
-      httpOnly: true
-    }
   }));
 
   app.use(express.json());
@@ -163,16 +134,26 @@ passport.use(new SpotifyStrategy({
 passport.use('spotify-link', new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  callbackURL: process.env.SPOTIFY_LINK_CALLBACK_URL, 
+  callbackURL: process.env.SPOTIFY_LINK_CALLBACK_URL,
   passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     const User = require('./src/models/usuario');
 
-    // Asegurarte de que el usuario ya está autenticado
-    const userId = req.cookies?.token && jwt.verify(req.cookies.token, process.env.JWT_SECRET)?.id;
-    if (!userId) return done(new Error('Usuario no autenticado'), null);
+    // Extraer el token JWT de la cookie de forma segura
+    let userId;
+    try {
+      const token = req.cookies?.token;
+      if (!token) return done(new Error('Token no presente en cookies'), null);
 
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (jwtError) {
+      console.error('[Spotify-Link] Error al verificar JWT:', jwtError.message);
+      return done(new Error('Token JWT inválido'), null);
+    }
+
+    // Buscar usuario actual
     const user = await User.findById(userId);
     if (!user) return done(new Error('Usuario no encontrado'), null);
 
@@ -182,11 +163,14 @@ passport.use('spotify-link', new SpotifyStrategy({
     user.spotifyRefreshToken = refreshToken;
     await user.save();
 
+    console.log(`[Spotify-Link] Usuario ${user.email} vinculado correctamente con Spotify`);
     done(null, user);
   } catch (err) {
+    console.error('[Spotify-Link] Error en estrategia:', err);
     done(err, null);
   }
 }));
+
 
 
 
