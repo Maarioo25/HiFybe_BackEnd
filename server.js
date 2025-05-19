@@ -157,11 +157,18 @@ passport.use('spotify-link', new SpotifyStrategy({
     const user = await User.findById(userId);
     if (!user) return done(new Error('Usuario no encontrado'), null);
 
-    // Asociar cuenta de Spotify
+    // Verificar que el spotifyId no está ya en uso por otro usuario
+    const existente = await User.findOne({ spotifyId: profile.id });
+    if (existente && existente._id.toString() !== user._id.toString()) {
+      return done(new Error('Esta cuenta de Spotify ya está vinculada a otro usuario'), null);
+    }
+
+    // Asignar si es seguro
     user.spotifyId = profile.id;
     user.spotifyAccessToken = accessToken;
     user.spotifyRefreshToken = refreshToken;
     await user.save();
+
 
     console.log(`[Spotify-Link] Usuario ${user.email} vinculado correctamente con Spotify`);
     done(null, user);
