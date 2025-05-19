@@ -200,7 +200,7 @@ exports.actualizarUbicacion = async (req, res) => {
 
 exports.obtenerUsuariosCercanos = async (req, res) => {
   try {
-    const { latitude, longitude, radio = 10 } = req.query; // radio en km
+    const { latitude, longitude, radio = 5000 } = req.query; // radio en km
 
     const usuarios = await Usuario.find({
       ubicacion: {
