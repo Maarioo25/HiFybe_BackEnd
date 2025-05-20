@@ -191,7 +191,8 @@ router.get('/spotify/connect',
       'user-modify-playback-state',
       'streaming',
       'playlist-modify-public',
-      'playlist-modify-private'
+      'playlist-modify-private',
+      'ugc-image-upload'
     ],
     session: false
   })
