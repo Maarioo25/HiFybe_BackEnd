@@ -189,7 +189,9 @@ router.get('/spotify/connect',
       'user-read-private',
       'user-read-playback-state',
       'user-modify-playback-state',
-      'streaming'
+      'streaming',
+      'playlist-modify-public',
+      'playlist-modify-private'
     ],
     session: false
   })

@@ -256,7 +256,10 @@ exports.spotifyAuth = passport.authenticate('spotify', {
   'user-read-playback-state',
   'user-modify-playback-state',
   'user-read-email',
-  'user-read-private'],
+  'user-read-private',
+  'playlist-modify-public',
+  'playlist-modify-private'
+],
   showDialog: true
 });
 
