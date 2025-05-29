@@ -209,6 +209,7 @@ passport.use('spotify-link', new SpotifyStrategy({
   app.use('/amistades', require('./src/routes/amistadesRoutes'));
   app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
   app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
+  APP.USE('/spotify', require('./src/routes/spotifyRoutes'))
 
   // Conexión a Mongo
   mongoose.connect(process.env.MONGO_URL)

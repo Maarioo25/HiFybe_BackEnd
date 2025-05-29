@@ -1,0 +1,44 @@
+const axios = require('axios');
+const Usuario = require('../models/usuario');
+
+const getSpotifyAppToken = async () => {
+  const credentials = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64');
+  const res = await axios.post('https://accounts.spotify.com/api/token', 'grant_type=client_credentials', {
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+  return res.data.access_token;
+};
+
+exports.obtenerPlaylistsDeSpotify = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario || !usuario.spotifyId) {
+      return res.status(400).json({ mensaje: 'El usuario no tiene Spotify vinculado' });
+    }
+
+    const token = await getSpotifyAppToken();
+    const response = await axios.get(`https://api.spotify.com/v1/users/${usuario.spotifyId}/playlists`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const playlists = response.data.items.map(p => ({
+      id: p.id,
+      nombre: p.name,
+      imagen: p.images[0]?.url || '',
+      canciones: p.tracks.total,
+      duracion: '---' // no disponible directamente
+    }));
+
+    res.json(playlists);
+  } catch (error) {
+    console.error('Error al obtener playlists de Spotify:', error.response?.data || error.message);
+    res.status(500).json({ mensaje: 'Error al obtener playlists de Spotify' });
+  }
+};
