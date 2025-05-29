@@ -42,9 +42,40 @@ exports.enviarSolicitudAmistad = async (req, res) => {
 };
 
 exports.responderSolicitudAmistad = async (req, res) => {
-  const solicitud = await SolicitudAmistad.findByIdAndUpdate(req.params.solicitudId, req.body, { new: true });
-  res.json(solicitud);
+  const { estado } = req.body;
+  const solicitudId = req.params.solicitudId;
+
+  if (!estado || !['aceptada', 'rechazada'].includes(estado)) {
+    return res.status(400).json({ mensaje: 'Estado inválido' });
+  }
+
+  try {
+    // Actualizamos el estado de la solicitud
+    const solicitud = await SolicitudAmistad.findByIdAndUpdate(
+      solicitudId,
+      { estado },
+      { new: true }
+    );
+
+    if (!solicitud) {
+      return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+    }
+
+    // Si fue aceptada, creamos la amistad
+    if (estado === 'aceptada') {
+      await Amistad.create({
+        usuario_id_1: solicitud.emisorId,
+        usuario_id_2: solicitud.receptorId,
+        estado: 'aceptada'
+      });
+    }
+
+    res.json({ mensaje: `Solicitud ${estado}`, solicitud });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al responder la solicitud' });
+  }
 };
+
 
 exports.eliminarAmistad = async (req, res) => {
   await Amistad.findByIdAndDelete(req.params.amistadId);
