@@ -64,8 +64,8 @@ exports.responderSolicitudAmistad = async (req, res) => {
     // Si fue aceptada, creamos la amistad
     if (estado === 'aceptada') {
       await Amistad.create({
-        usuario_id_1: solicitud.emisorId,
-        usuario_id_2: solicitud.receptorId,
+        usuario_id_1: solicitud.de_usuario_id,
+        usuario_id_2: solicitud.para_usuario_id,
         estado: 'aceptada'
       });
     }
@@ -86,6 +86,6 @@ exports.obtenerSolicitudesAmistad = async (req, res) => {
   const solicitudes = await SolicitudAmistad.find({
     para_usuario_id: req.params.usuarioId,
     estado: 'pendiente',
-  });
+  }).populate('de_usuario_id');
   res.json(solicitudes);
 };
