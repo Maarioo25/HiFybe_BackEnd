@@ -3,7 +3,8 @@ const router = express.Router();
 const {
   obtenerNotificaciones,
   marcarNotificacionLeida,
-  eliminarNotificacion
+  eliminarNotificacion, 
+  crearNotificacion
 } = require('../controllers/notificacionesController');
 
 /**
@@ -32,6 +33,36 @@ const {
  *         description: Notificaciones obtenidas correctamente.
  */
 router.get('/usuarios/:usuarioId', obtenerNotificaciones);
+
+/**
+ * @swagger
+ * /notificaciones:
+ *   post:
+ *     summary: Crear una nueva notificación
+ *     description: Crea una notificación dirigida a un usuario específico.
+ *     tags: [Notificaciones]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               usuario_id:
+ *                 type: string
+ *                 description: ID del usuario que recibirá la notificación.
+ *               contenido:
+ *                 type: string
+ *                 description: Contenido del mensaje de la notificación.
+ *     responses:
+ *       201:
+ *         description: Notificación creada correctamente.
+ *       500:
+ *         description: Error al crear la notificación.
+ */
+
+router.post('/', crearNotificacion);
+
 
 /**
  * @swagger
