@@ -46,6 +46,8 @@ exports.obtenerPlaylistsDeSpotify = async (req, res) => {
 exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
+    console.log("Token recibido del cliente:", token);
+
     if (!token) return res.status(401).json({ mensaje: 'Token de Spotify no enviado' });
 
     const response = await axios.get('https://api.spotify.com/v1/recommendations', {
@@ -67,7 +69,11 @@ exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
 
     res.json(recomendaciones);
   } catch (error) {
-    console.error('Error al obtener recomendaciones de Spotify:', error.response?.data || error.message);
+    console.error('Error al obtener recomendaciones de Spotify:', {
+    message: error.message,
+    status: error.response?.status,
+    data: error.response?.data
+  });
     res.status(500).json({ mensaje: 'Error al obtener recomendaciones de Spotify' });
   }
 };
