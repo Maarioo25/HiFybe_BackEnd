@@ -33,7 +33,7 @@ exports.obtenerPlaylistsDeSpotify = async (req, res) => {
       nombre: p.name,
       imagen: p.images[0]?.url || '',
       canciones: p.tracks.total,
-      duracion: '---' // no disponible directamente
+      duracion: '---'
     }));
 
     res.json(playlists);
@@ -45,7 +45,8 @@ exports.obtenerPlaylistsDeSpotify = async (req, res) => {
 
 exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
   try {
-    const token = await getSpotifyAppToken();
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ mensaje: 'Token de Spotify no enviado' });
 
     const response = await axios.get('https://api.spotify.com/v1/recommendations', {
       headers: {
@@ -53,9 +54,7 @@ exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
       },
       params: {
         limit: 10,
-        seed_artists: '4NHQUGzhtTLFvgF5SZesLK',
-        seed_genres: 'pop',
-        seed_tracks: '0c6xIDDpzE81m2q797ordA'
+        seed_genres: 'pop'
       }
     });
 
@@ -72,4 +71,3 @@ exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al obtener recomendaciones de Spotify' });
   }
 };
-
