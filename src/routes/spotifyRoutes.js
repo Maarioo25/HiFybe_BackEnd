@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { obtenerPlaylistsDeSpotify } = require('../controllers/spotifyController');
+const { obtenerPlaylistsDeSpotify, obtenerRecomendacionesDeSpotify } = require('../controllers/spotifyController');
 
 /**
  * @swagger
