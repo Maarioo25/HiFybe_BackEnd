@@ -50,4 +50,34 @@ const { obtenerPlaylistsDeSpotify } = require('../controllers/spotifyController'
 
 router.get('/playlists/:userId', obtenerPlaylistsDeSpotify);
 
+/**
+ * @swagger
+ * /spotify/recomendaciones:
+ *   get:
+ *     summary: Obtener recomendaciones personalizadas desde Spotify
+ *     description: Devuelve una lista de canciones recomendadas usando la API de Spotify con semillas predeterminadas.
+ *     tags: [Spotify]
+ *     responses:
+ *       200:
+ *         description: Lista de canciones recomendadas obtenida correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   artist:
+ *                     type: string
+ *                   img:
+ *                     type: string
+ *                   spotifyUri:
+ *                     type: string
+ *       500:
+ *         description: Error al obtener recomendaciones desde la API de Spotify.
+ */
+router.get('/recomendaciones', obtenerRecomendacionesDeSpotify);
+
 module.exports = router;

@@ -42,3 +42,34 @@ exports.obtenerPlaylistsDeSpotify = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al obtener playlists de Spotify' });
   }
 };
+
+exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
+  try {
+    const token = await getSpotifyAppToken();
+
+    const response = await axios.get('https://api.spotify.com/v1/recommendations', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        limit: 10,
+        seed_artists: '4NHQUGzhtTLFvgF5SZesLK',
+        seed_genres: 'pop',
+        seed_tracks: '0c6xIDDpzE81m2q797ordA'
+      }
+    });
+
+    const recomendaciones = response.data.tracks.map(track => ({
+      title: track.name,
+      artist: track.artists.map(a => a.name).join(', '),
+      img: track.album.images?.[0]?.url,
+      spotifyUri: track.uri
+    }));
+
+    res.json(recomendaciones);
+  } catch (error) {
+    console.error('Error al obtener recomendaciones de Spotify:', error.response?.data || error.message);
+    res.status(500).json({ mensaje: 'Error al obtener recomendaciones de Spotify' });
+  }
+};
+
