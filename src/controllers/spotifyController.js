@@ -44,35 +44,31 @@ exports.obtenerPlaylistsDeSpotify = async (req, res) => {
 };
 
 exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ mensaje: 'Token de Spotify no enviado' });
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token de Spotify proporcionado' });
 
+  try {
     const response = await axios.get('https://api.spotify.com/v1/recommendations', {
       headers: {
         Authorization: `Bearer ${token}`
       },
       params: {
-        limit: 10,
-        seed_genres: 'pop'
+        seed_genres: 'pop',
+        limit: 10
       }
     });
 
     const recomendaciones = response.data.tracks.map(track => ({
+      spotifyUri: track.uri,
       title: track.name,
       artist: track.artists.map(a => a.name).join(', '),
-      img: track.album.images?.[0]?.url,
-      spotifyUri: track.uri
+      img: track.album.images?.[0]?.url || ''
     }));
 
     res.json(recomendaciones);
   } catch (error) {
-    console.error('Error al obtener recomendaciones de Spotify:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
-    res.status(500).json({ mensaje: 'Error al obtener recomendaciones de Spotify' });
+    console.error('Error al obtener recomendaciones de Spotify:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Error al obtener recomendaciones de Spotify' });
   }
 };
 
