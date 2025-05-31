@@ -3,13 +3,12 @@ const router = express.Router();
 
 const {
   obtenerPlaylists,
-  obtenerPlaylistPorId,
   crearPlaylist,
   actualizarPlaylist,
   eliminarPlaylist,
   agregarCancionAPlaylist,
   eliminarCancionDePlaylist,
-  obtenerCancionesDePlaylist, // <<< nuevo controlador
+  getPlaylistById
 } = require('../controllers/playlistsController');
 
 /**
@@ -31,50 +30,6 @@ const {
  *         description: Listado de playlists públicas obtenido correctamente.
  */
 router.get('/', obtenerPlaylists);
-
-/**
- * @swagger
- * /playlists/{id}:
- *   get:
- *     summary: Obtener una playlist pública por ID
- *     description: Recupera los detalles de una playlist pública específica mediante su ID.
- *     tags: [Playlists]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID de la playlist (debe ser pública).
- *     responses:
- *       200:
- *         description: Playlist pública obtenida correctamente.
- *       404:
- *         description: Playlist no encontrada o no es pública.
- */
-router.get('/:id', obtenerPlaylistPorId);
-
-/**
- * @swagger
- * /playlists/{id}/canciones:
- *   get:
- *     summary: Obtener todas las canciones de una playlist pública
- *     description: Recupera el listado de canciones asociadas a una playlist pública.
- *     tags: [Playlists]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID de la playlist (debe ser pública).
- *     responses:
- *       200:
- *         description: Listado de canciones obtenido correctamente.
- *       404:
- *         description: Playlist no encontrada o no es pública.
- */
-router.get('/:id/canciones', obtenerCancionesDePlaylist);
 
 /**
  * @swagger
@@ -108,6 +63,9 @@ router.get('/:id/canciones', obtenerCancionesDePlaylist);
  *         description: Playlist creada correctamente.
  */
 router.post('/', crearPlaylist);
+
+// Obtener detalle de playlist de un usuario amigo
+router.get('/users/:userId/playlists/:playlistId', getPlaylistById);
 
 /**
  * @swagger

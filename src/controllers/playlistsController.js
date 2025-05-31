@@ -23,89 +23,20 @@ exports.obtenerPlaylists = async (req, res) => {
   }
 };
 
-// Obtener una playlist pública por su ID
-exports.obtenerPlaylistPorId = async (req, res) => {
+exports.getPlaylistById = async (req, res) => {
+  const { userId, playlistId } = req.params;
   try {
-    const { id } = req.params;
-    // Solo buscamos playlists donde es_publica = true
-    const playlist = await Playlist.findOne(
-      { _id: id, es_publica: true },
-      'nombre descripcion portada usuario_id fecha_creacion'
-    ).populate('usuario_id', 'nombre');
-
+    // Buscar la playlist por su ID y que su campo owner coincida con userId
+    const playlist = await Playlist.findOne({ _id: playlistId, owner: userId })
+      .populate('owner', 'nombre') // opcional: poblamos nombre del usuario
+      .populate('canciones');      // opcional: poblamos documentos de canciones
     if (!playlist) {
-      return res.status(404).json({ mensaje: 'Playlist no encontrada o no es pública' });
+      return res.status(404).json({ mensaje: 'Playlist no encontrada' });
     }
-
-    // Devolvemos el objeto tal cual; el front podrá leer:
-    // {
-    //   _id,
-    //   nombre,
-    //   descripcion,
-    //   portada,
-    //   usuario_id: { _id, nombre },
-    //   fecha_creacion
-    // }
     res.json(playlist);
   } catch (error) {
-    console.error('Error al obtener la playlist por ID:', error);
-    if (error.name === 'CastError') {
-      return res.status(404).json({ mensaje: 'Playlist no encontrada o ID inválido' });
-    }
-    return res.status(500).json({ mensaje: 'Error del servidor' });
-  }
-};
-
-// Obtener todas las canciones de una playlist pública
-exports.obtenerCancionesDePlaylist = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Primero comprobamos que la playlist exista y sea pública
-    const playlist = await Playlist.findOne({ _id: id, es_publica: true });
-    if (!playlist) {
-      return res.status(404).json({ mensaje: 'Playlist no encontrada o no es pública' });
-    }
-
-    // Buscamos todas las entradas en PlaylistCancion que referencien esta playlist
-    const entradas = await PlaylistCancion.find(
-      { playlist_id: id },
-      // Proyectamos únicamente cancion_id
-      'cancion_id'
-    );
-
-    const songIds = entradas.map((e) => e.cancion_id);
-
-    // Ahora buscamos cada Cancion por su _id
-    // Tu modelo de Cancion incluye campos: 
-    // { cancion_id, titulo, artista, album, duracion, url_audio, fecha_lanzamiento }
-    const canciones = await Cancion.find(
-      { _id: { $in: songIds } },
-      // Proyectamos los campos que el front usará
-      'cancion_id titulo artista album duracion url_audio fecha_lanzamiento'
-    );
-
-    // Devolvemos un array de objetos Cancion, por ejemplo:
-    // [
-    //   {
-    //     "_id": "60f5ab12e1f4a2c3b8d99999",
-    //     "cancion_id": 123,
-    //     "titulo": "Song Title",
-    //     "artista": "Artist Name",
-    //     "album": "Album Name",
-    //     "duracion": 215,
-    //     "url_audio": "https://...",
-    //     "fecha_lanzamiento": "2021-07-19T00:00:00.000Z"
-    //   },
-    //   { /* … */ }
-    // ]
-    res.json(canciones);
-  } catch (error) {
-    console.error('Error al obtener canciones de la playlist:', error);
-    if (error.name === 'CastError') {
-      return res.status(404).json({ mensaje: 'Playlist no encontrada o ID inválido' });
-    }
-    return res.status(500).json({ mensaje: 'Error del servidor' });
+    console.error('Error al buscar playlist:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
 };
 
