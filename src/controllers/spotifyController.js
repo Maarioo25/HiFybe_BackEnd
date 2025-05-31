@@ -68,7 +68,10 @@ exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
     res.json(recomendaciones);
   } catch (error) {
     console.error('Error al obtener recomendaciones de Spotify:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Error al obtener recomendaciones de Spotify' });
+    res.status(500).json({
+      mensaje: 'Error al obtener recomendaciones de Spotify',
+      spotify: error.response?.data || error.message
+    });
   }
 };
 
