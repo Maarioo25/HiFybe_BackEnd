@@ -1,4 +1,5 @@
 const Cancion = require('../models/cancion');
+const axios = require('axios');
 
 exports.obtenerCanciones = async (req, res) => {
   const canciones = await Cancion.find();
@@ -47,9 +48,7 @@ exports.obtenerCancionSpotify = async (req, res) => {
     const token = tokenRes.data.access_token;
 
     const spotifyRes = await axios.get(`https://api.spotify.com/v1/tracks/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     const track = spotifyRes.data;
@@ -66,3 +65,4 @@ exports.obtenerCancionSpotify = async (req, res) => {
     return res.status(500).json({ mensaje: 'Error al obtener datos de Spotify' });
   }
 };
+
