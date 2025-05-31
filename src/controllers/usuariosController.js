@@ -43,10 +43,13 @@ const emitirTokenYCookie = (usuario, res) => {
 
 exports.registrarUsuario = async (req, res) => {
   try {
-    const { nombre, apellidos, email, password } = req.body;
+    // Ahora aceptamos foto_perfil opcionalmente en el body
+    const { nombre, apellidos, email, password, foto_perfil } = req.body;
+
+    // Verificar si ya existe el usuario por correo
     const usuarioExistePorCorreo = await Usuario.findOne({ email });
-    const usuarioEstaRegistradoConGoogle = await Usuario.findOne({ email , auth_proveedor: 'google' })
-    const usuarioEstaRegistradoConSpotify = await Usuario.findOne({ email , auth_proveedor: 'spotify' })
+    const usuarioEstaRegistradoConGoogle = await Usuario.findOne({ email, auth_proveedor: 'google' });
+    const usuarioEstaRegistradoConSpotify = await Usuario.findOne({ email, auth_proveedor: 'spotify' });
 
     if (usuarioEstaRegistradoConGoogle)
       return res.status(403).json({ mensaje: 'Inicia sesión a través de Google.' });
@@ -54,17 +57,34 @@ exports.registrarUsuario = async (req, res) => {
     if (usuarioEstaRegistradoConSpotify)
       return res.status(403).json({ mensaje: 'Inicia sesión a través de Spotify.' });
 
-    if (usuarioExistePorCorreo) 
-      return res.status(403).json({ mensaje: 'Esta dirección de correo ya esta registrada, Inicia sesión.' });
+    if (usuarioExistePorCorreo)
+      return res.status(403).json({ mensaje: 'Esta dirección de correo ya está registrada, inicia sesión.' });
 
+    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
-    const usuario = await Usuario.create({ nombre, apellidos, email, password: hashedPassword });
 
+    // Si no se proporcionó foto_perfil (o viene vacío), asignamos DEFAULT_AVATAR
+    let finalAvatarUrl = foto_perfil;
+    if (!foto_perfil || foto_perfil.trim() === "") {
+      finalAvatarUrl = "/avatars/default.jpg"; // "/avatars/default.jpg"
+    }
+
+    // Crear el nuevo usuario, incluyendo foto_perfil (sea la proporcionada o la por defecto)
+    const usuario = await Usuario.create({
+      nombre,
+      apellidos,
+      email,
+      password: hashedPassword,
+      foto_perfil: finalAvatarUrl
+    });
+
+    // Devolvemos el usuario sin campos sensibles
     res.status(201).json({
       mensaje: 'Usuario registrado exitosamente.',
       usuario: limpiarUsuario(usuario)
     });
   } catch (err) {
+    console.error('Error al registrar usuario:', err);
     res.status(500).json({ mensaje: 'Error al registrar usuario.' });
   }
 };
