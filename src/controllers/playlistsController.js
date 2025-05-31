@@ -175,7 +175,7 @@ exports.eliminarPlaylist = async (req, res) => {
 exports.agregarCancionAPlaylist = async (req, res) => {
   try {
     const { id } = req.params;         // id de la playlist
-    const { cancionId } = req.body;    // aquí esperamos cancionId sea el _id de Cancion
+    const { cancionId } = req.body;
 
     // Comprobamos que la playlist exista
     const playlist = await Playlist.findById(id);
