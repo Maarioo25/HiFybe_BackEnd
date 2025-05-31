@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   obtenerPlaylists,
   obtenerPlaylistPorId,
@@ -7,7 +8,8 @@ const {
   actualizarPlaylist,
   eliminarPlaylist,
   agregarCancionAPlaylist,
-  eliminarCancionDePlaylist
+  eliminarCancionDePlaylist,
+  obtenerCancionesDePlaylist, // <<< nuevo controlador
 } = require('../controllers/playlistsController');
 
 /**
@@ -21,12 +23,12 @@ const {
  * @swagger
  * /playlists:
  *   get:
- *     summary: Obtener todas las playlists
- *     description: Recupera una lista con todas las playlists disponibles.
+ *     summary: Obtener todas las playlists públicas
+ *     description: Recupera una lista con todas las playlists públicas disponibles.
  *     tags: [Playlists]
  *     responses:
  *       200:
- *         description: Listado de playlists obtenido correctamente.
+ *         description: Listado de playlists públicas obtenido correctamente.
  */
 router.get('/', obtenerPlaylists);
 
@@ -34,8 +36,8 @@ router.get('/', obtenerPlaylists);
  * @swagger
  * /playlists/{id}:
  *   get:
- *     summary: Obtener una playlist por ID
- *     description: Recupera los detalles de una playlist específica mediante su ID.
+ *     summary: Obtener una playlist pública por ID
+ *     description: Recupera los detalles de una playlist pública específica mediante su ID.
  *     tags: [Playlists]
  *     parameters:
  *       - in: path
@@ -43,14 +45,36 @@ router.get('/', obtenerPlaylists);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de la playlist.
+ *         description: ID de la playlist (debe ser pública).
  *     responses:
  *       200:
- *         description: Playlist obtenida correctamente.
+ *         description: Playlist pública obtenida correctamente.
  *       404:
- *         description: Playlist no encontrada.
+ *         description: Playlist no encontrada o no es pública.
  */
 router.get('/:id', obtenerPlaylistPorId);
+
+/**
+ * @swagger
+ * /playlists/{id}/canciones:
+ *   get:
+ *     summary: Obtener todas las canciones de una playlist pública
+ *     description: Recupera el listado de canciones asociadas a una playlist pública.
+ *     tags: [Playlists]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la playlist (debe ser pública).
+ *     responses:
+ *       200:
+ *         description: Listado de canciones obtenido correctamente.
+ *       404:
+ *         description: Playlist no encontrada o no es pública.
+ */
+router.get('/:id/canciones', obtenerCancionesDePlaylist);
 
 /**
  * @swagger
@@ -72,10 +96,13 @@ router.get('/:id', obtenerPlaylistPorId);
  *                 type: string
  *               usuarioId:
  *                 type: string
+ *               es_publica:
+ *                 type: boolean
  *             example:
  *               nombre: "Mi Playlist"
  *               descripcion: "Playlist para entrenar"
  *               usuarioId: "usuario123"
+ *               es_publica: true
  *     responses:
  *       201:
  *         description: Playlist creada correctamente.
@@ -107,9 +134,12 @@ router.post('/', crearPlaylist);
  *                 type: string
  *               descripcion:
  *                 type: string
+ *               es_publica:
+ *                 type: boolean
  *             example:
  *               nombre: "Playlist actualizada"
  *               descripcion: "Descripción nueva"
+ *               es_publica: false
  *     responses:
  *       200:
  *         description: Playlist actualizada correctamente.
