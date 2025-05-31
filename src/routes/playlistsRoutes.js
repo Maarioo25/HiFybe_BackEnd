@@ -65,7 +65,7 @@ router.get('/', obtenerPlaylists);
 router.post('/', crearPlaylist);
 
 // Obtener detalle de playlist de un usuario amigo
-router.get('/users/:userId/playlists/:playlistId', getPlaylistById);
+router.get('/friends/:userId/playlists/:playlistId', getPlaylistById);
 
 /**
  * @swagger

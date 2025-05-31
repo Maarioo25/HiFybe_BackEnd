@@ -26,10 +26,9 @@ exports.obtenerPlaylists = async (req, res) => {
 exports.getPlaylistById = async (req, res) => {
   const { userId, playlistId } = req.params;
   try {
-    // Buscar la playlist por su ID y que su campo owner coincida con userId
     const playlist = await Playlist.findOne({ _id: playlistId, owner: userId })
-      .populate('owner', 'nombre') // opcional: poblamos nombre del usuario
-      .populate('canciones');      // opcional: poblamos documentos de canciones
+      .populate('owner', 'nombre')
+      .populate('canciones');
     if (!playlist) {
       return res.status(404).json({ mensaje: 'Playlist no encontrada' });
     }
