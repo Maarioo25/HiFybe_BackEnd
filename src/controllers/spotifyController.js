@@ -65,14 +65,16 @@ exports.obtenerRecomendacionesDeSpotify = async (req, res) => {
       img: track.album.images?.[0]?.url || ''
     }));
 
-    res.json(recomendaciones);
+    return res.json(recomendaciones); // 👈 importante el return
   } catch (error) {
     console.error('Error al obtener recomendaciones de Spotify:', error.response?.data || error.message);
-    res.status(404).json({
-      mensaje: 'No se encontraron recomendaciones de Spotify',
-      spotify: error.response?.data || error.message
-    });
-    res.status(500).json({
+
+    // Si es un 404 desde Spotify, responde lista vacía
+    if (error.response?.status === 404) {
+      return res.status(200).json([]); // 👈 return evita doble respuesta
+    }
+
+    return res.status(500).json({
       mensaje: 'Error al obtener recomendaciones de Spotify',
       spotify: error.response?.data || error.message
     });
