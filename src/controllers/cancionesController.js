@@ -61,7 +61,14 @@ exports.obtenerCancionSpotify = async (req, res) => {
       uri: track.uri
     });
   } catch (err) {
-    console.error('Error al obtener canción de Spotify:', err.response?.data || err.message);
+    console.error('Error al obtener canción de Spotify:');
+    if (err.response) {
+      console.error('Status:', err.response.status);
+      console.error('Data:', err.response.data);
+    } else {
+      console.error(err.message);
+    }
+
     return res.status(500).json({ mensaje: 'Error al obtener datos de Spotify' });
   }
 };
