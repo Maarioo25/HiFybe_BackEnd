@@ -5,7 +5,8 @@ const {
   obtenerCancionPorId,
   crearCancion,
   actualizarCancion,
-  eliminarCancion
+  eliminarCancion,
+  obtenerCancionSpotify
 } = require('../controllers/cancionesController');
 
 /**
@@ -158,5 +159,7 @@ router.put('/:id', actualizarCancion);
  *         description: Canción no encontrada.
  */
 router.delete('/:id', eliminarCancion);
+
+router.get('/spotify/:id', obtenerCancionSpotify);
 
 module.exports = router;

@@ -24,3 +24,45 @@ exports.eliminarCancion = async (req, res) => {
   await Cancion.findByIdAndDelete(req.params.id);
   res.json({ mensaje: 'Canción eliminada' });
 };
+
+exports.obtenerCancionSpotify = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const credentials = Buffer.from(
+      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+    ).toString('base64');
+
+    const tokenRes = await axios.post(
+      'https://accounts.spotify.com/api/token',
+      new URLSearchParams({ grant_type: 'client_credentials' }),
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+
+    const token = tokenRes.data.access_token;
+
+    const spotifyRes = await axios.get(`https://api.spotify.com/v1/tracks/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const track = spotifyRes.data;
+
+    return res.json({
+      id: track.id,
+      nombre: track.name,
+      artista: track.artists.map(a => a.name).join(', '),
+      imagen: track.album.images?.[0]?.url || null,
+      uri: track.uri
+    });
+  } catch (err) {
+    console.error('Error al obtener canción de Spotify:', err.response?.data || err.message);
+    return res.status(500).json({ mensaje: 'Error al obtener datos de Spotify' });
+  }
+};
