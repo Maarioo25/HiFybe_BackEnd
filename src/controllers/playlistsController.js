@@ -29,13 +29,20 @@ exports.getPlaylistById = async (req, res) => {
     const playlist = await Playlist.findOne({ _id: playlistId, owner: userId })
       .populate('owner', 'nombre')
       .populate('canciones');
+
     if (!playlist) {
       return res.status(404).json({ mensaje: 'Playlist no encontrada' });
     }
-    res.json(playlist);
+
+    const respuesta = {
+      ...playlist.toObject(),
+      propietario: playlist.owner
+    };
+
+    return res.json(respuesta);
   } catch (error) {
     console.error('Error al buscar playlist:', error);
-    res.status(500).json({ mensaje: 'Error interno del servidor' });
+    return res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
 };
 
