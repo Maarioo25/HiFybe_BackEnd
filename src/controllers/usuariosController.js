@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const qs = require('qs');
 
 const User = require('../models/usuario');
 
@@ -19,6 +20,26 @@ const limpiarUsuario = (usuario) => {
   } = usuario._doc;
   return resto;
 };
+
+async function refrescarToken(refreshToken) {
+  const authHeader = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64');
+
+  const response = await axios.post('https://accounts.spotify.com/api/token',
+    qs.stringify({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    }),
+    {
+      headers: {
+        Authorization: `Basic ${authHeader}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+
+  return response.data.access_token;
+}
+
 
 const emitirTokenYCookie = (usuario, res) => {
   if (!process.env.JWT_SECRET) {
@@ -392,7 +413,6 @@ exports.obtenerCancionActual = async (req, res) => {
       const track = response.data;
 
       if (!track || !track.name) {
-        console.warn(`[obtenerCancionActual] Spotify devolvió una respuesta inválida para usuario ${id}`);
         return res.json({ nombre: null });
       }
 
@@ -404,9 +424,35 @@ exports.obtenerCancionActual = async (req, res) => {
       });
 
     } catch (spotifyErr) {
-      console.warn(`[obtenerCancionActual] Error al llamar a Spotify para usuario ${id}:`, spotifyErr?.response?.status);
-      return res.json({ nombre: null });
+      console.warn(`[obtenerCancionActual] Token expirado, intentando refrescar para usuario ${id}`);
+
+      try {
+        const nuevoToken = await refrescarToken(usuario.spotifyRefreshToken);
+        usuario.spotifyAccessToken = nuevoToken;
+        await usuario.save();
+
+        const retry = await axios.get(
+          `https://api.spotify.com/v1/tracks/${usuario.ultima_cancion_id}`,
+          {
+            headers: { Authorization: `Bearer ${nuevoToken}` }
+          }
+        );
+
+        const track = retry.data;
+
+        res.json({
+          nombre: track.name,
+          artista: track.artists.map(a => a.name).join(', '),
+          imagen: track.album.images[0]?.url || '',
+          uri: track.uri
+        });
+
+      } catch (refreshErr) {
+        console.error(`[obtenerCancionActual] Fallo al refrescar token para usuario ${id}:`, refreshErr.response?.data || refreshErr.message);
+        return res.json({ nombre: null });
+      }
     }
+
 
   } catch (err) {
     console.error('Error general al obtener canción:', err);
