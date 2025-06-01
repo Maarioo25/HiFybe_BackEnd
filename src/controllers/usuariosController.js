@@ -377,27 +377,32 @@ exports.obtenerCancionActual = async (req, res) => {
 
   try {
     const usuario = await Usuario.findById(id);
-    if (!usuario || !usuario.ultima_cancion_id) {
+    if (!usuario || !usuario.ultima_cancion_id || !usuario.spotify_token) {
       return res.json({});
     }
 
-    const token = usuario.spotify_token;
-    if (!token) return res.status(401).json({ error: 'Token de Spotify no disponible' });
+    try {
+      const response = await axios.get(`https://api.spotify.com/v1/tracks/${usuario.ultima_cancion_id}`, {
+        headers: { Authorization: `Bearer ${usuario.spotify_token}` }
+      });
 
-    const trackId = usuario.ultima_cancion_id;
-    const response = await axios.get(`https://api.spotify.com/v1/tracks/${trackId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+      const track = response.data;
 
-    const track = response.data;
+      res.json({
+        nombre: track.name,
+        artista: track.artists.map(a => a.name).join(', '),
+        imagen: track.album.images[0]?.url || '',
+        uri: track.uri
+      });
 
-    res.json({
-      nombre: track.name,
-      artista: track.artists.map(a => a.name).join(', '),
-      imagen: track.album.images[0]?.url || ''
-    });
+    } catch (spotifyErr) {
+      console.warn('Spotify token inválido o expirado:', spotifyErr?.response?.status);
+      return res.json({}); // nunca devuelvas 401 aquí
+    }
+
   } catch (err) {
-    console.error('Error al obtener canción:', err);
+    console.error('Error general al obtener canción:', err);
     res.status(500).json({ error: 'Error al obtener canción' });
   }
 };
+
