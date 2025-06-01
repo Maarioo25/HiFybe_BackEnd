@@ -113,8 +113,6 @@ passport.use(new SpotifyStrategy({
     if (!usuario) {
       usuario = new User({
         spotifyId: userData.id,
-        spotifyAccessToken: accessToken,
-        spotifyRefreshToken: refreshToken,
         email: email,
         nombre: userData.display_name || 'Usuario',
         apellidos: 'Desconocido',
@@ -122,10 +120,10 @@ passport.use(new SpotifyStrategy({
         foto_perfil: userData.images?.[0]?.url || '',
         auth_proveedor: 'spotify'
       });
+      usuario.spotifyAccessToken = accessToken
+      usuario.spotifyRefreshToken = refreshToken
       await usuario.save();
     }
-    usuario.spotifyAccessToken = accessToken
-    usuario.spotifyRefreshToken = refreshToken
 
     done(null, usuario); // ✅ req.user estará bien definido
   } catch (err) {
