@@ -119,10 +119,12 @@ passport.use(new SpotifyStrategy({
         password: await require('bcryptjs').hash(Math.random().toString(36), 10),
         foto_perfil: userData.images?.[0]?.url || '',
         auth_proveedor: 'spotify',
+        spotifyAccessToken: accessToken,
+        spotifyRefreshToken: refreshToken
       });
       await usuario.save();
     }
-    usuario.accessToken = accessToken;
+    
 
     done(null, usuario); // ✅ req.user estará bien definido
   } catch (err) {
