@@ -387,6 +387,7 @@ exports.obtenerCancionActual = async (req, res) => {
       });
 
       const track = response.data;
+      console.log(response.data)
 
       res.json({
         nombre: track.name,
