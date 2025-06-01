@@ -54,8 +54,8 @@ exports.obtenerConversacionesUsuario = async (req, res) => {
         { usuario1_id: usuarioId },
         { usuario2_id: usuarioId }
       ]
-    }).populate('usuario1_id', 'nombre foto_perfil') // ← añadido
-      .populate('usuario2_id', 'nombre foto_perfil'); // ← añadido
+    }).populate('usuario1_id', 'nombre foto_perfil')
+      .populate('usuario2_id', 'nombre foto_perfil');
 
     res.json(conversaciones);
   } catch (err) {
