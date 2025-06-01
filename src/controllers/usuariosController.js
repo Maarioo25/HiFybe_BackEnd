@@ -377,13 +377,13 @@ exports.obtenerCancionActual = async (req, res) => {
 
   try {
     const usuario = await Usuario.findById(id);
-    if (!usuario || !usuario.ultima_cancion_id || !usuario.spotify_token) {
+    if (!usuario || !usuario.ultima_cancion_id || !usuario.spotifyAccessToken) {
       return res.json({});
     }
 
     try {
       const response = await axios.get(`https://api.spotify.com/v1/tracks/${usuario.ultima_cancion_id}`, {
-        headers: { Authorization: `Bearer ${usuario.spotify_token}` }
+        headers: { Authorization: `Bearer ${usuario.spotifyAccessToken}` }
       });
 
       const track = response.data;
