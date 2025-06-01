@@ -377,8 +377,20 @@ exports.obtenerCancionActual = async (req, res) => {
 
   try {
     const usuario = await Usuario.findById(id);
-    if (!usuario || !usuario.ultima_cancion_id || !usuario.spotifyAccessToken) {
-      return res.json({});
+
+    if (!usuario) {
+      console.warn(`[obtenerCancionActual] Usuario no encontrado con id ${id}`);
+      return res.json({ nombre: null });
+    }
+
+    if (!usuario.ultima_cancion_id) {
+      console.warn(`[obtenerCancionActual] Usuario ${id} no tiene ultima_cancion_id`);
+      return res.json({ nombre: null });
+    }
+
+    if (!usuario.spotifyAccessToken) {
+      console.warn(`[obtenerCancionActual] Usuario ${id} no tiene spotifyAccessToken`);
+      return res.json({ nombre: null });
     }
 
     try {
@@ -387,9 +399,9 @@ exports.obtenerCancionActual = async (req, res) => {
       });
 
       const track = response.data;
-      console.log(response.data)
+      console.log(`[obtenerCancionActual] Canción obtenida correctamente para usuario ${id}: ${track.name}`);
 
-      res.json({
+      return res.json({
         nombre: track.name,
         artista: track.artists.map(a => a.name).join(', '),
         imagen: track.album.images[0]?.url || '',
@@ -397,13 +409,14 @@ exports.obtenerCancionActual = async (req, res) => {
       });
 
     } catch (spotifyErr) {
-      console.warn('Spotify token inválido o expirado:', spotifyErr?.response?.status);
-      return res.json({}); // nunca devuelvas 401 aquí
+      console.warn(`[obtenerCancionActual] Spotify error para usuario ${id}:`, spotifyErr?.response?.status, spotifyErr?.response?.data);
+      return res.json({ nombre: null });
     }
 
   } catch (err) {
-    console.error('Error general al obtener canción:', err);
-    res.status(500).json({ error: 'Error al obtener canción' });
+    console.error(`[obtenerCancionActual] Error general para usuario ${id}:`, err);
+    return res.status(500).json({ error: 'Error al obtener canción' });
   }
 };
+
 
