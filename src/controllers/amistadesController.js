@@ -40,9 +40,28 @@ exports.obtenerAmistades = async (req, res) => {
 };
 
 exports.enviarSolicitudAmistad = async (req, res) => {
-  const solicitud = await SolicitudAmistad.create(req.body);
-  res.json(solicitud);
+  const { de_usuario_id, para_usuario_id } = req.body;
+
+  if (!de_usuario_id || !para_usuario_id) {
+    return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
+  }
+
+  const yaExiste = await SolicitudAmistad.findOne({
+    $or: [
+      { de_usuario_id, para_usuario_id },
+      { de_usuario_id: para_usuario_id, para_usuario_id: de_usuario_id }
+    ],
+    estado: 'pendiente'
+  });
+
+  if (yaExiste) {
+    return res.json({ mensaje: 'Solicitud ya existente (pendiente)' });
+  }
+
+  const solicitud = await SolicitudAmistad.create({ de_usuario_id, para_usuario_id });
+  res.json({ mensaje: 'Solicitud creada', solicitud });
 };
+
 
 exports.responderSolicitudAmistad = async (req, res) => {
   const { estado } = req.body;
