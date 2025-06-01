@@ -1,46 +1,48 @@
-const Playlist = require('../models/playlist'); // o como sea tu modelo
+const fetch = require('node-fetch');
+const User = require('../models/usuario');
 
 exports.getPublicPlaylistByUserAndId = async (req, res) => {
   const { userId, playlistId } = req.params;
-  console.log('➡️ Obteniendo playlist pública con:', { userId, playlistId });
 
   try {
-    const playlist = await Playlist.findOne({
-      _id: playlistId,
-      owner: userId,
-      privada: false
-    }).populate('canciones');
-
-    console.log('🎯 Resultado de búsqueda:', playlist);
-
-    if (!playlist) {
-      return res.status(404).json({ mensaje: 'Playlist no encontrada' });
+    // 1. Buscar el usuario en tu base de datos
+    const usuario = await User.findById(userId);
+    if (!usuario || !usuario.spotifyAccessToken) {
+      return res.status(404).json({ mensaje: 'Usuario no vinculado a Spotify o no encontrado' });
     }
 
-    // Asegúrate de que canciones no sea null o malformado
-    if (!Array.isArray(playlist.canciones)) {
-      console.warn('⚠️ playlist.canciones no es un array:', playlist.canciones);
+    // 2. Llamar a la API de Spotify usando su token
+    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+      headers: { Authorization: `Bearer ${usuario.spotifyAccessToken}` }
+    });
+
+    if (!response.ok) {
+      const texto = await response.text();
+      console.error('❌ Spotify error:', response.status, texto);
+      return res.status(response.status).json({ mensaje: 'Error al cargar playlist de Spotify' });
     }
+
+    const playlist = await response.json();
 
     res.json({
-      nombre: playlist.nombre,
-      descripcion: playlist.descripcion,
-      imagen: playlist.portada,
-      owner: { nombre: playlist.ownerName || 'Desconocido' },
-      canciones: playlist.canciones.map(c => ({
-        _id: c._id,
-        title: c.titulo,
-        artist: c.artista,
-        duration: c.duracion,
-        cover: c.portada,
-        uri: c.uri
-      }))
+      nombre: playlist.name,
+      descripcion: playlist.description,
+      imagen: playlist.images?.[0]?.url,
+      owner: { nombre: playlist.owner?.display_name || 'Desconocido' },
+      canciones: (playlist.tracks.items || []).map(item => {
+        const track = item.track;
+        return {
+          _id: track.id,
+          title: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          duration: `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`,
+          cover: track.album.images?.[0]?.url,
+          uri: track.uri
+        };
+      })
     });
   } catch (err) {
     console.error('❌ Error en getPublicPlaylistByUserAndId:', err);
-    res.status(500).json({
-      mensaje: 'Error en el servidor. Por favor, verifica que todos los campos estén correctamente completados.'
-    });
+    res.status(500).json({ mensaje: 'Error en el servidor al obtener la playlist de Spotify' });
   }
 };
-
