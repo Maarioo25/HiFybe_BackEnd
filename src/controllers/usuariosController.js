@@ -377,31 +377,26 @@ exports.obtenerCancionActual = async (req, res) => {
 
   try {
     const usuario = await Usuario.findById(id);
-
-    if (!usuario) {
-      console.warn(`[obtenerCancionActual] Usuario no encontrado con id ${id}`);
-      return res.json({ nombre: null });
-    }
-
-    if (!usuario.ultima_cancion_id) {
-      console.warn(`[obtenerCancionActual] Usuario ${id} no tiene ultima_cancion_id`);
-      return res.json({ nombre: null });
-    }
-
-    if (!usuario.spotifyAccessToken) {
-      console.warn(`[obtenerCancionActual] Usuario ${id} no tiene spotifyAccessToken`);
+    if (!usuario || !usuario.ultima_cancion_id || !usuario.spotifyAccessToken) {
       return res.json({ nombre: null });
     }
 
     try {
-      const response = await axios.get(`https://api.spotify.com/v1/tracks/${usuario.ultima_cancion_id}`, {
-        headers: { Authorization: `Bearer ${usuario.spotifyAccessToken}` }
-      });
+      const response = await axios.get(
+        `https://api.spotify.com/v1/tracks/${usuario.ultima_cancion_id}`,
+        {
+          headers: { Authorization: `Bearer ${usuario.spotifyAccessToken}` }
+        }
+      );
 
       const track = response.data;
-      console.log(`[obtenerCancionActual] track response para usuario ${id}:`, JSON.stringify(track, null, 2));
 
-      return res.json({
+      if (!track || !track.name) {
+        console.warn(`[obtenerCancionActual] Spotify devolvió una respuesta inválida para usuario ${id}`);
+        return res.json({ nombre: null });
+      }
+
+      res.json({
         nombre: track.name,
         artista: track.artists.map(a => a.name).join(', '),
         imagen: track.album.images[0]?.url || '',
@@ -409,14 +404,15 @@ exports.obtenerCancionActual = async (req, res) => {
       });
 
     } catch (spotifyErr) {
-      console.warn(`[obtenerCancionActual] Spotify error para usuario ${id}:`, spotifyErr?.response?.status, spotifyErr?.response?.data);
+      console.warn(`[obtenerCancionActual] Error al llamar a Spotify para usuario ${id}:`, spotifyErr?.response?.status);
       return res.json({ nombre: null });
     }
 
   } catch (err) {
-    console.error(`[obtenerCancionActual] Error general para usuario ${id}:`, err);
-    return res.status(500).json({ error: 'Error al obtener canción' });
+    console.error('Error general al obtener canción:', err);
+    res.status(500).json({ error: 'Error al obtener canción' });
   }
 };
+
 
 
