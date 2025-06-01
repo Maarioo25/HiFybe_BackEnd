@@ -113,16 +113,24 @@ passport.use(new SpotifyStrategy({
     if (!usuario) {
       usuario = new User({
         spotifyId: userData.id,
-        email: email,
+        email,
         nombre: userData.display_name || 'Usuario',
         apellidos: 'Desconocido',
-        password: await require('bcryptjs').hash(Math.random().toString(36), 10),
+        password: await bcrypt.hash(Math.random().toString(36), 10),
         foto_perfil: userData.images?.[0]?.url || '',
-        auth_proveedor: 'spotify'
+        auth_proveedor: 'spotify',
+        spotifyAccessToken: accessToken,         // ✅ Guardamos accessToken
+        spotifyRefreshToken: refreshToken || ''  // ✅ También el refreshToken si viene
       });
-      await usuario.save();
+    } else {
+      // Si ya existe, actualizamos los tokens
+      usuario.spotifyId = userData.id;
+      usuario.spotifyAccessToken = accessToken;
+      usuario.spotifyRefreshToken = refreshToken || usuario.spotifyRefreshToken || '';
     }
-    usuario.accessToken = accessToken;
+
+    await usuario.save();
+
 
     done(null, usuario); // ✅ req.user estará bien definido
   } catch (err) {
