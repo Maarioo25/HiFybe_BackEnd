@@ -85,7 +85,8 @@ passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-  passReqToCallback: true
+  passReqToCallback: true,
+  skipUserProfile: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     const User = require('./src/models/usuario');
@@ -112,24 +113,17 @@ passport.use(new SpotifyStrategy({
     if (!usuario) {
       usuario = new User({
         spotifyId: userData.id,
-        email,
+        email: email,
         nombre: userData.display_name || 'Usuario',
         apellidos: 'Desconocido',
-        password: await bcrypt.hash(Math.random().toString(36), 10),
+        password: await require('bcryptjs').hash(Math.random().toString(36), 10),
         foto_perfil: userData.images?.[0]?.url || '',
         auth_proveedor: 'spotify',
-        spotifyAccessToken: accessToken,         // ✅ Guardamos accessToken
-        spotifyRefreshToken: refreshToken || ''  // ✅ También el refreshToken si viene
+        spotifyAccessToken: accessToken,
+        spotifyRefreshToken: refreshToken
       });
-    } else {
-      // Si ya existe, actualizamos los tokens
-      usuario.spotifyId = userData.id;
-      usuario.spotifyAccessToken = accessToken;
-      usuario.spotifyRefreshToken = refreshToken || usuario.spotifyRefreshToken || '';
+      await usuario.save();
     }
-
-    await usuario.save();
-
 
     done(null, usuario); // ✅ req.user estará bien definido
   } catch (err) {
