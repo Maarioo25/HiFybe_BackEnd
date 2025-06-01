@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const qs = require('qs');
+const axios = require('axios')
 
 const User = require('../models/usuario');
 
