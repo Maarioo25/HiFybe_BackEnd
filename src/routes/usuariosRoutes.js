@@ -28,6 +28,8 @@ const {
   actualizarUbicacion,
   obtenerUsuariosCercanos,
 
+  actualizarCancion,
+  obtenerCancionActual,
 
   getCurrentUser,
   logoutUser
@@ -497,9 +499,9 @@ router.delete('/:id', requireAuth, eliminarUsuario);
 
 //--------------Ultima canción escuchada-------------//
 
-router.put('/:id/cancion', usuarioController.actualizarCancion);
+router.put('/:id/cancion', actualizarCancion);
 
-router.get('/:id/cancion', usuarioController.obtenerCancionActual);
+router.get('/:id/cancion', obtenerCancionActual);
 
 
 module.exports = router;
