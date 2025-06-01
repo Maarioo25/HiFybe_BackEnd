@@ -399,7 +399,7 @@ exports.obtenerCancionActual = async (req, res) => {
       });
 
       const track = response.data;
-      console.log(`[obtenerCancionActual] Canción obtenida correctamente para usuario ${id}: ${track.name}`);
+      console.log(`[obtenerCancionActual] track response para usuario ${id}:`, JSON.stringify(track, null, 2));
 
       return res.json({
         nombre: track.name,
