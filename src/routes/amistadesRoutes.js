@@ -33,7 +33,7 @@ const {
  *       200:
  *         description: Lista de amistades obtenida correctamente.
  */
-router.get('/usuarios/:usuarioId', obtenerAmistades);
+router.get('/usuarios/:userId', obtenerAmistades);
 
 /**
  * @swagger

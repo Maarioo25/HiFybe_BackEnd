@@ -3,7 +3,7 @@ const SolicitudAmistad = require('../models/solicitudAmistad');
 const Usuario = require('../models/usuario');
 
 exports.obtenerAmistades = async (req, res) => {
-  const userId = req.params.usuarioId;
+  const userId = req.params.userId;
   // buscamos las amistades aceptadas e incluimos info de ambos usuarios
   const amistades = await Amistad
     .find({
@@ -17,7 +17,9 @@ exports.obtenerAmistades = async (req, res) => {
     .populate('usuario_id_2', 'nombre foto_perfil ubicarion playlistsPublicas estado cancionDestacada ultimaActividad online');
 
   // transformamos para devolver siempre el otro usuario como “amigo”
-  const friends = amistades.map(a => {
+  const friends = amistades
+  .filter(a => a.usuario_id_1 && a.usuario_id_2) // <-- esto evita el null
+  .map(a => {
     const amigo = a.usuario_id_1._id.toString() === userId
       ? a.usuario_id_2
       : a.usuario_id_1;
@@ -32,6 +34,7 @@ exports.obtenerAmistades = async (req, res) => {
       ultimaActividad: amigo.ultimaActividad
     };
   });
+
 
   res.json(friends);
 };
