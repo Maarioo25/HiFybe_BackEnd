@@ -351,3 +351,53 @@ exports.logoutUser = (req, res) => {
 
 
 
+//------------Ultima canción---------------//
+
+exports.actualizarCancion = async (req, res) => {
+  const { id } = req.params;
+  const { trackId } = req.body;
+
+  if (!trackId) return res.status(400).json({ error: 'trackId requerido' });
+
+  try {
+    await Usuario.findByIdAndUpdate(
+      id,
+      { ultima_cancion_id: trackId },
+      { new: true }
+    );
+    res.json({ success: true, trackId });
+  } catch (err) {
+    console.error('Error al guardar canción:', err);
+    res.status(500).json({ error: 'Error al guardar canción' });
+  }
+};
+
+exports.obtenerCancionActual = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const usuario = await Usuario.findById(id);
+    if (!usuario || !usuario.ultima_cancion_id) {
+      return res.json({});
+    }
+
+    const token = usuario.spotify_token;
+    if (!token) return res.status(401).json({ error: 'Token de Spotify no disponible' });
+
+    const trackId = usuario.ultima_cancion_id;
+    const response = await axios.get(`https://api.spotify.com/v1/tracks/${trackId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const track = response.data;
+
+    res.json({
+      nombre: track.name,
+      artista: track.artists.map(a => a.name).join(', '),
+      imagen: track.album.images[0]?.url || ''
+    });
+  } catch (err) {
+    console.error('Error al obtener canción:', err);
+    res.status(500).json({ error: 'Error al obtener canción' });
+  }
+};

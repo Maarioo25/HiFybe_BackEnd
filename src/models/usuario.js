@@ -8,11 +8,13 @@ const usuarioSchema = new mongoose.Schema({
   auth_proveedor:      { type: String,  enum: ['local', 'google', 'spotify'], default: 'local' },
   password:            { type: String,  required: function () { return this.auth_proveedor === 'local' } },
   googleId:            { type: String,  unique: true, sparse: true, trim: true },
+  ultima_cancion_id:   { type: String, default: null },
+
 
   // 🎵 Campos para Spotify
   spotifyId:           { type: String,  unique: true, sparse: true, trim: true },
-  spotifyAccessToken:  { type: String,  default: '' },     // ✅ NUEVO
-  spotifyRefreshToken: { type: String,  default: '' },     // ✅ NUEVO
+  spotifyAccessToken:  { type: String,  default: '' },
+  spotifyRefreshToken: { type: String,  default: '' },
 
   biografia:           { type: String,  default: '' },
   ubicacion_lat:       { type: Number,  default: null },

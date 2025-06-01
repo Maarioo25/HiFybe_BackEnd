@@ -494,4 +494,12 @@ router.put('/:id', requireAuth, actualizarUsuario);
  */
 router.delete('/:id', requireAuth, eliminarUsuario);
 
+
+//--------------Ultima canción escuchada-------------//
+
+router.put('/:id/cancion', usuarioController.actualizarCancion);
+
+router.get('/:id/cancion', usuarioController.obtenerCancionActual);
+
+
 module.exports = router;
