@@ -107,7 +107,6 @@ passport.use(new SpotifyStrategy({
 
     const email = userData.email ?? `${userData.id}@spotify.local`;
 
-    // 👇 Buscar o crear usuario
     let usuario = await User.findOne({ email });
 
     if (!usuario) {
@@ -120,12 +119,18 @@ passport.use(new SpotifyStrategy({
         foto_perfil: userData.images?.[0]?.url || '',
         auth_proveedor: 'spotify'
       });
-      usuario.spotifyAccessToken = accessToken
-      usuario.spotifyRefreshToken = refreshToken
-      await usuario.save();
     }
 
-    done(null, usuario); // ✅ req.user estará bien definido
+    // Siempre guardar/actualizar tokens y spotifyId
+    usuario.spotifyId = userData.id;
+    usuario.spotifyAccessToken = accessToken;
+    usuario.spotifyRefreshToken = refreshToken;
+    await usuario.save();
+
+    console.log('✅ Usuario Spotify autenticado:', usuario.email);
+
+    done(null, usuario);
+
   } catch (err) {
     console.error('[Spotify] Error manual al obtener perfil:', err);
     done(err, null);
