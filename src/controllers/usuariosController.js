@@ -301,7 +301,8 @@ exports.spotifyAuth = passport.authenticate('spotify', {
   'user-read-private',
   'playlist-modify-public',
   'playlist-modify-private',
-  'ugc-image-upload'
+  'ugc-image-upload',
+  'user-top-read'
 ],
   showDialog: true
 });

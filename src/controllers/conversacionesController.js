@@ -60,7 +60,7 @@ exports.obtenerConversacionesUsuario = async (req, res) => {
     res.json(conversaciones);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener conversaciones' });
-  }
+  } 
 };
 
 exports.obtenerMensajesConversacion = async (req, res) => {
