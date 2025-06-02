@@ -31,6 +31,8 @@ const {
   actualizarCancion,
   obtenerCancionActual,
 
+  ocultarUbicacion,
+
   getCurrentUser,
   logoutUser
 } = require('../controllers/usuariosController');
@@ -290,6 +292,9 @@ router.post('/logout', requireAuth, logoutUser);
  *         description: Ubicación actualizada correctamente
  */
 router.post('/ubicacion', requireAuth, actualizarUbicacion);
+
+router.post('/ocultar-ubicacion', requireAuth, ocultarUbicacion);
+
 
 /**
  * @swagger

@@ -260,6 +260,26 @@ exports.obtenerUsuariosCercanos = async (req, res) => {
   }
 };
 
+exports.ocultarUbicacion = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    await Usuario.findByIdAndUpdate(userId, {
+      $unset: {
+        ubicacion: "",
+        ubicacion_lat: "",
+        ubicacion_lon: ""
+      }
+    });
+
+    res.status(200).json({ mensaje: "Ubicación eliminada correctamente" });
+  } catch (error) {
+    console.error("Error al ocultar ubicación:", error);
+    res.status(500).json({ mensaje: "Error interno al ocultar ubicación" });
+  }
+};
+
+
 
 
 // ===================== GOOGLE OAUTH ===================== //
