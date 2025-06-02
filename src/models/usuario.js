@@ -31,7 +31,7 @@ const usuarioSchema = new mongoose.Schema({
       default: [0, 0]
     }
   },
-  compartir_ubicacion: { type: Boolean, default: true },
+  compartir_ubicacion: { type: Boolean, default: false },
   foto_perfil:         { type: String,  default: '' },
   fecha_registro:      { type: Date,    default: Date.now },
   ultima_conexion:     { type: Date,    default: Date.now }

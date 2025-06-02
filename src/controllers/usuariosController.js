@@ -226,6 +226,7 @@ exports.actualizarUbicacion = async (req, res) => {
     await Usuario.findByIdAndUpdate(userId, {
       ubicacion_lat: latitude,
       ubicacion_lon: longitude,
+      compartir_ubicacion: true,
       ubicacion: {
         type: 'Point',
         coordinates: [longitude, latitude]
@@ -265,6 +266,7 @@ exports.ocultarUbicacion = async (req, res) => {
     const userId = req.user._id;
 
     await Usuario.findByIdAndUpdate(userId, {
+      compartir_ubicacion: false,
       $unset: {
         ubicacion: "",
         ubicacion_lat: "",
