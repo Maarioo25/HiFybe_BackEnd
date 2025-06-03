@@ -2,8 +2,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Asegura que la carpeta exista
 const uploadPath = path.join(__dirname, '../../public/uploads');
+
+// Asegúrate de que la carpeta exista
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
 }

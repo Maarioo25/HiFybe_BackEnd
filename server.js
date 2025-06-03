@@ -35,6 +35,8 @@ const app = express();
   app.use(cookieParser());
   app.use(passport.initialize());
 
+  app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -208,8 +210,6 @@ passport.use('spotify-link', new SpotifyStrategy({
   app.get('/', (req, res) => {
     res.send('API HiFybe activa 🚀');
   });
-
-  app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
   app.use('/usuarios', require('./src/routes/usuariosRoutes'));
   app.use('/canciones', require('./src/routes/cancionesRoutes'));
