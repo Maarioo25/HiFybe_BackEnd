@@ -12,9 +12,24 @@ exports.obtenerCancionPorId = async (req, res) => {
 };
 
 exports.crearCancion = async (req, res) => {
-  const nuevaCancion = await Cancion.create(req.body);
-  res.json(nuevaCancion);
+  try {
+    const { titulo, artista, uri } = req.body;
+    if (!titulo || !artista || !uri) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    // Evitar duplicados
+    let existente = await Cancion.findOne({ uri });
+    if (existente) return res.json(existente);
+
+    const nueva = await Cancion.create({ titulo, artista, uri });
+    res.status(201).json(nueva);
+  } catch (err) {
+    console.error('Error creando canción:', err);
+    res.status(500).json({ error: 'Error al crear la canción' });
+  }
 };
+
 
 exports.actualizarCancion = async (req, res) => {
   const cancion = await Cancion.findByIdAndUpdate(req.params.id, req.body, { new: true });
