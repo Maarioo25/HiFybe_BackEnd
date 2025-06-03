@@ -508,7 +508,11 @@ exports.actualizarRedesSociales = async (req, res) => {
 
 exports.subirFotoPerfil = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ mensaje: 'No se subió ningún archivo' });
+    console.log('Archivo recibido:', req.file);
+
+    if (!req.file) {
+      return res.status(400).json({ mensaje: 'No se subió ningún archivo' });
+    }
 
     const rutaFoto = `/uploads/${req.file.filename}`;
 
@@ -518,7 +522,9 @@ exports.subirFotoPerfil = async (req, res) => {
       { new: true }
     );
 
-    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
 
     res.json({
       mensaje: 'Foto actualizada',
@@ -527,7 +533,7 @@ exports.subirFotoPerfil = async (req, res) => {
     });
   } catch (err) {
     console.error('Error al subir foto:', err);
-    res.status(500).json({ mensaje: 'Error interno al subir foto' });
+    res.status(500).json({ mensaje: 'Error en el servidor. Por favor, verifica que todos los campos estén correctamente completados.' });
   }
 };
 
