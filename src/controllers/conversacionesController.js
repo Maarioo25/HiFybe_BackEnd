@@ -74,7 +74,8 @@ exports.obtenerMensajesConversacion = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener mensajes' });
   }
-};
+}; 
+
 
 exports.enviarMensaje = async (req, res) => {
   try {
