@@ -9,7 +9,7 @@ const SpotifyStrategy = require('passport-spotify').Strategy;
 const bcrypt = require('bcryptjs');
 const swaggerUi = require('swagger-ui-express');
 const jwt = require('jsonwebtoken');
-const path = require('path');s
+const path = require('path');
 const swaggerJsdoc = require('swagger-jsdoc');
 
 dotenv.config();
