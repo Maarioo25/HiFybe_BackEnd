@@ -78,22 +78,24 @@ exports.obtenerMensajesConversacion = async (req, res) => {
 
 exports.enviarMensaje = async (req, res) => {
   try {
-    const { emisorId, contenido, cancion_id } = req.body;
+    const { emisorId, contenido, cancion } = req.body;
 
     const nuevoMensaje = await Mensaje.create({
       conversacion_id: req.params.id,
       emisor_id: emisorId,
       contenido,
-      cancion_id: cancion_id || null
+      cancion: cancion || null
     });
 
-    const mensajeConDatos = await nuevoMensaje.populate('emisor_id', 'nombre foto_perfil'); // ← añadido
+    const mensajeConDatos = await nuevoMensaje.populate('emisor_id', 'nombre foto_perfil');
 
     res.status(201).json(mensajeConDatos);
   } catch (err) {
+    console.error('Error al enviar mensaje:', err);
     res.status(500).json({ error: 'Error al enviar mensaje' });
   }
 };
+
 
 exports.marcarMensajeLeido = async (req, res) => {
   try {
@@ -107,3 +109,4 @@ exports.marcarMensajeLeido = async (req, res) => {
     res.status(500).json({ error: 'Error al marcar como leído' });
   }
 };
+

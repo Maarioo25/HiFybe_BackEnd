@@ -5,7 +5,7 @@ const mensajeSchema = new mongoose.Schema({
     emisor_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
     contenido: String,
     fecha_envio: { type: Date, default: Date.now },
-    cancion_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Cancion', default: null },
+    cancion: { uri: { type: String }, titulo: { type: String }, artista: { type: String }},
     leido: { type: Boolean, default: false },
   }, { collection: 'mensajes' });
   
