@@ -9,6 +9,7 @@ const SpotifyStrategy = require('passport-spotify').Strategy;
 const bcrypt = require('bcryptjs');
 const swaggerUi = require('swagger-ui-express');
 const jwt = require('jsonwebtoken');
+const path = require('path');s
 const swaggerJsdoc = require('swagger-jsdoc');
 
 dotenv.config();
@@ -207,6 +208,8 @@ passport.use('spotify-link', new SpotifyStrategy({
   app.get('/', (req, res) => {
     res.send('API HiFybe activa 🚀');
   });
+
+  app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
   app.use('/usuarios', require('./src/routes/usuariosRoutes'));
   app.use('/canciones', require('./src/routes/cancionesRoutes'));

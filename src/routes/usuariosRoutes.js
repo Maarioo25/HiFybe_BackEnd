@@ -2,6 +2,7 @@
 const express = require('express');
 const passport = require('passport');
 const requireAuth = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -35,6 +36,8 @@ const {
   obtenerCancionActual,
 
   ocultarUbicacion,
+
+  subirFotoPerfil,
 
   getCurrentUser,
   logoutUser
@@ -516,6 +519,11 @@ router.delete('/:id', requireAuth, eliminarUsuario);
 router.put('/:id/cancion', actualizarCancion);
 
 router.get('/:id/cancion', obtenerCancionActual);
+
+
+//------------Imagen----------------------------//
+
+router.post('/:id/foto', requireAuth, upload.single('foto'), subirFotoPerfil);
 
 
 module.exports = router;

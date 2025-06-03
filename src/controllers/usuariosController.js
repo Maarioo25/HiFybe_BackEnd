@@ -506,6 +506,32 @@ exports.actualizarRedesSociales = async (req, res) => {
   }
 };
 
+exports.subirFotoPerfil = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ mensaje: 'No se subió ningún archivo' });
+
+    const rutaFoto = `/uploads/${req.file.filename}`;
+
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      { foto_perfil: rutaFoto },
+      { new: true }
+    );
+
+    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+
+    res.json({
+      mensaje: 'Foto actualizada',
+      url: rutaFoto,
+      usuario: limpiarUsuario(usuario)
+    });
+  } catch (err) {
+    console.error('Error al subir foto:', err);
+    res.status(500).json({ mensaje: 'Error interno al subir foto' });
+  }
+};
+
+
 exports.actualizarPreferenciasUsuario = async (req, res) => {
   try {
     const { ciudad, generos_favoritos, tema_oscuro } = req.body;
