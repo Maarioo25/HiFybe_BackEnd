@@ -66,15 +66,18 @@ exports.obtenerConversacionesUsuario = async (req, res) => {
 exports.obtenerMensajesConversacion = async (req, res) => {
   try {
     const mensajes = await Mensaje.find({ conversacion_id: req.params.id })
-      .sort({ fecha_envio: 1 }) // ← añadido
-      .populate('emisor_id', 'nombre foto_perfil') // ← añadido
-      .populate('cancion_id'); // ← añadido
+      .sort({ fecha_envio: 1 })
+      .populate('emisor_id', 'nombre foto_perfil'); // ← solo esto
 
     res.json(mensajes);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener mensajes' });
+    console.error('Error al obtener mensajes:', err);
+    res.status(500).json({
+      mensaje: 'Error en el servidor. Por favor, verifica que todos los campos estén correctamente completados.'
+    });
   }
-}; 
+};
+
 
 
 exports.enviarMensaje = async (req, res) => {
