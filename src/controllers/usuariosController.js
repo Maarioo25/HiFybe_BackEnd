@@ -184,7 +184,7 @@ exports.obtenerUsuarioPorId = async (req, res) => {
 
 exports.actualizarUsuario = async (req, res) => {
   try {
-    const camposPermitidos = ['nombre', 'apellidos', 'biografia', 'foto_perfil', 'password'];
+    const camposPermitidos = [ 'nombre', 'apellidos', 'biografia', 'foto_perfil', 'password', 'bio', 'ciudad', 'generos_favoritos', 'redes', 'tema_oscuro'];
     const actualizaciones = {};
     for (const campo of camposPermitidos) {
       if (req.body[campo] !== undefined) {
@@ -481,6 +481,49 @@ exports.obtenerCancionActual = async (req, res) => {
   } catch (err) {
     console.error('Error general al obtener canción:', err);
     res.status(500).json({ error: 'Error al obtener canción' });
+  }
+};
+
+exports.actualizarRedesSociales = async (req, res) => {
+  try {
+    const { instagram, twitter, tiktok } = req.body;
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          'redes.instagram': instagram,
+          'redes.twitter': twitter,
+          'redes.tiktok': tiktok
+        }
+      },
+      { new: true }
+    );
+
+    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    res.json({ mensaje: 'Redes sociales actualizadas.', usuario: limpiarUsuario(usuario) });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al actualizar redes sociales.' });
+  }
+};
+
+exports.actualizarPreferenciasUsuario = async (req, res) => {
+  try {
+    const { ciudad, generos_favoritos, tema_oscuro } = req.body;
+
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...(ciudad && { ciudad }),
+        ...(generos_favoritos && { generos_favoritos }),
+        ...(tema_oscuro !== undefined && { tema_oscuro }),
+      },
+      { new: true }
+    );
+
+    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    res.json({ mensaje: 'Preferencias actualizadas.', usuario: limpiarUsuario(usuario) });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al actualizar preferencias.' });
   }
 };
 

@@ -9,7 +9,11 @@ const usuarioSchema = new mongoose.Schema({
   password:            { type: String,  required: function () { return this.auth_proveedor === 'local' } },
   googleId:            { type: String,  unique: true, sparse: true, trim: true },
   ultima_cancion_id:   { type: String, default: null },
-
+  bio:                 { type: String, default: '' },
+  ciudad:              { type: String, default: '' },
+  generos_favoritos:  [{ type: String }],
+  redes:               { instagram: { type: String, default: '' }, twitter: { type: String, default: '' }, tiktok: { type: String, default: '' }},
+  tema_oscuro:         { type: Boolean, default: false },
 
   // 🎵 Campos para Spotify
   spotifyId:           { type: String,  unique: true, sparse: true, trim: true },

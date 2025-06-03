@@ -28,6 +28,9 @@ const {
   actualizarUbicacion,
   obtenerUsuariosCercanos,
 
+  actualizarRedesSociales,
+  actualizarPreferenciasUsuario,
+  
   actualizarCancion,
   obtenerCancionActual,
 
@@ -294,6 +297,11 @@ router.post('/logout', requireAuth, logoutUser);
 router.post('/ubicacion', requireAuth, actualizarUbicacion);
 
 router.post('/ocultar-ubicacion', requireAuth, ocultarUbicacion);
+
+router.put('/:id/redes', requireAuth, actualizarRedesSociales);
+
+router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
+
 
 
 /**
