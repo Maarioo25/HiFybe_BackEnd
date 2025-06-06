@@ -293,20 +293,29 @@ exports.googleAuth = passport.authenticate('google', {
 });
 
 exports.googleCallback = async (req, res) => {
+  const redirect_uri = req.query.redirect_uri || process.env.FRONTEND_URL;
+
   if (req.user) {
     try {
       req.user.ultima_conexion = Date.now();
       await req.user.save();
-      emitirTokenYCookie(req.user, res);
-      res.redirect(`${process.env.FRONTEND_URL}`);
+      const token = emitirTokenYCookie(req.user, res);
+      
+      // Para mobile, incluye el token en el redirect
+      if (redirect_uri.startsWith('HiFybe_Native://')) {
+        return res.redirect(`${redirect_uri}?access_token=${token}`);
+      }
+
+      return res.redirect(redirect_uri);
     } catch (err) {
       console.error('ERROR CALLBACK:', err);
-      res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+      return res.redirect(`${redirect_uri}?error=server_error`);
     }
-  } else {
-    res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
   }
+
+  return res.redirect(`${redirect_uri}?error=google_auth_failed`);
 };
+
 
 exports.googleAuthFailureHandler = (req, res) => {
   res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
@@ -331,28 +340,28 @@ exports.spotifyAuth = passport.authenticate('spotify', {
 
 
 exports.spotifyCallback = async (req, res) => {
+  const redirect_uri = req.query.redirect_uri || process.env.FRONTEND_URL;
+
   try {
     if (!req.user) {
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
+      return res.redirect(`${redirect_uri}?error=spotify_auth_failed`);
     }
 
     req.user.ultima_conexion = Date.now();
     await req.user.save();
+    const token = emitirTokenYCookie(req.user, res);
 
-    const spotifyAccessToken = req.user.spotifyAccessToken;
-    if (!spotifyAccessToken) {
-      console.error('No se encontró accessToken en req.user');
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_spotify_token`);
+    if (redirect_uri.startsWith('HiFybe_Native://')) {
+      return res.redirect(`${redirect_uri}?access_token=${token}`);
     }
 
-    emitirTokenYCookie(req.user, res);
-
-    return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${spotifyAccessToken}`);
+    return res.redirect(redirect_uri);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
-    return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+    return res.redirect(`${redirect_uri}?error=server_error`);
   }
 };
+
 
 exports.spotifyLinkCallback = async (req, res) => {
   try {
