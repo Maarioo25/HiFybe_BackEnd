@@ -349,7 +349,7 @@ exports.spotifyAuth = (req, res, next) => {
 
 
 exports.spotifyCallback = async (req, res) => {
-  const redirect_uri = req.session.redirect_uri;
+  const redirect_uri = req.session.redirect_uri || req.query.redirect_uri;
   console.log('Redirect URI: ', redirect_uri);
 
   if (!redirect_uri) {
