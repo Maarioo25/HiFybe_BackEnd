@@ -128,10 +128,10 @@ exports.loginUsuario = async (req, res) => {
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    const token = emitirTokenYCookie(usuario, res);
+    emitirTokenYCookie(usuario, res);
+
     res.json({
       mensaje: 'Login exitoso.',
-      token,
       usuario: limpiarUsuario(usuario)
     });
   } catch (err) {
@@ -293,29 +293,20 @@ exports.googleAuth = passport.authenticate('google', {
 });
 
 exports.googleCallback = async (req, res) => {
-  const redirect_uri = req.query.redirect_uri || process.env.FRONTEND_URL;
-
   if (req.user) {
     try {
       req.user.ultima_conexion = Date.now();
       await req.user.save();
-      const token = emitirTokenYCookie(req.user, res);
-      
-      // Para mobile, incluye el token en el redirect
-      if (redirect_uri.startsWith('HiFybe_Native://')) {
-        return res.redirect(`HiFybe_Native://callback?access_token=${token}`);
-      }
-
-      return res.redirect(redirect_uri);
+      emitirTokenYCookie(req.user, res);
+      res.redirect(`${process.env.FRONTEND_URL}`);
     } catch (err) {
       console.error('ERROR CALLBACK:', err);
-      return res.redirect(`${redirect_uri}?error=server_error`);
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
     }
+  } else {
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
   }
-
-  return res.redirect(`${redirect_uri}?error=google_auth_failed`);
 };
-
 
 exports.googleAuthFailureHandler = (req, res) => {
   res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
@@ -340,37 +331,28 @@ exports.spotifyAuth = passport.authenticate('spotify', {
 
 
 exports.spotifyCallback = async (req, res) => {
-  const redirect_uri = req.query.redirect_uri;
-  console.log('Redirect URI: ', redirect_uri);
-
-  if (!redirect_uri) {
-    return res.status(400).json({ error: 'Falta redirect_uri' });
-  }
-
   try {
     if (!req.user) {
-      return res.redirect(`${redirect_uri}?error=spotify_auth_failed`);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
     }
 
     req.user.ultima_conexion = Date.now();
     await req.user.save();
-    const token = emitirTokenYCookie(req.user, res);
 
-    // Redirección al frontend web o móvil
-    if (redirect_uri.startsWith('hifybe-native://')) {
-      console.log('Redirección al frontend móvil');
-      return res.redirect(`${redirect_uri}?access_token=${token}`);
+    const spotifyAccessToken = req.user.spotifyAccessToken;
+    if (!spotifyAccessToken) {
+      console.error('No se encontró accessToken en req.user');
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_spotify_token`);
     }
 
-    console.log('Redirección al frontend web');
-    return res.redirect(redirect_uri);
+    emitirTokenYCookie(req.user, res);
+
+    return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${spotifyAccessToken}`);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
-    return res.redirect(`${redirect_uri}?error=server_error`);
+    return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
-
-
 
 exports.spotifyLinkCallback = async (req, res) => {
   try {
