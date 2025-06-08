@@ -323,33 +323,24 @@ exports.googleAuthFailureHandler = (req, res) => {
 
 // ===================== SPOTIFY OAUTH ===================== //
 
-exports.spotifyAuth = (req, res, next) => {
-  const { redirect_uri } = req.query;
-
-  if (redirect_uri) {
-    req.session.redirect_uri = redirect_uri;
-  }
-
-  passport.authenticate('spotify', {
-    scope: [
-      'streaming',
-      'user-read-playback-state',
-      'user-modify-playback-state',
-      'user-read-email',
-      'user-read-private',
-      'playlist-modify-public',
-      'playlist-modify-private',
-      'ugc-image-upload',
-      'user-top-read'
-    ],
-    showDialog: true
-  })(req, res, next);
-};
-
+exports.spotifyAuth = passport.authenticate('spotify', { 
+  scope: [
+  'streaming',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+  'user-read-email',
+  'user-read-private',
+  'playlist-modify-public',
+  'playlist-modify-private',
+  'ugc-image-upload',
+  'user-top-read'
+],
+  showDialog: true
+});
 
 
 exports.spotifyCallback = async (req, res) => {
-  const redirect_uri = req.session.redirect_uri || req.query.redirect_uri;
+  const redirect_uri = req.query.redirect_uri;
   console.log('Redirect URI: ', redirect_uri);
 
   if (!redirect_uri) {
