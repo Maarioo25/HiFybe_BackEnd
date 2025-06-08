@@ -128,10 +128,10 @@ exports.loginUsuario = async (req, res) => {
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    emitirTokenYCookie(usuario, res);
-
+    const token = emitirTokenYCookie(usuario, res);
     res.json({
       mensaje: 'Login exitoso.',
+      token,
       usuario: limpiarUsuario(usuario)
     });
   } catch (err) {
@@ -300,6 +300,11 @@ exports.googleCallback = async (req, res) => {
       req.user.ultima_conexion = Date.now();
       await req.user.save();
       const token = emitirTokenYCookie(req.user, res);
+      res.json({
+        mensaje: 'Login exitoso.',
+        token,
+        usuario: limpiarUsuario(req.user)
+      });
       
       // Para mobile, incluye el token en el redirect
       if (redirect_uri.startsWith('HiFybe_Native://')) {
@@ -350,6 +355,11 @@ exports.spotifyCallback = async (req, res) => {
     req.user.ultima_conexion = Date.now();
     await req.user.save();
     const token = emitirTokenYCookie(req.user, res);
+    res.json({
+      mensaje: 'Login exitoso.',
+      token,
+      usuario: limpiarUsuario(req.user)
+    });
 
     if (redirect_uri.startsWith('HiFybe_Native://')) {
       return res.redirect(`${redirect_uri}?access_token=${token}`);
