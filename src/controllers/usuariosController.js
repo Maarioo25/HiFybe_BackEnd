@@ -341,12 +341,11 @@ exports.spotifyAuth = passport.authenticate('spotify', {
 
 exports.spotifyCallback = async (req, res) => {
   const redirect_uri = req.query.redirect_uri;
+  console.log('Redirect URI: ', redirect_uri);
+
   if (!redirect_uri) {
     return res.status(400).json({ error: 'Falta redirect_uri' });
   }
-  const authUrl = `https://api.mariobueno.info/usuarios/spotify?redirect_uri=${encodeURIComponent(redirect_uri)}`;
-  Linking.openURL(authUrl);
-
 
   try {
     if (!req.user) {
@@ -357,10 +356,13 @@ exports.spotifyCallback = async (req, res) => {
     await req.user.save();
     const token = emitirTokenYCookie(req.user, res);
 
-    if (redirect_uri.startsWith('HiFybe_Native://')) {
+    // Redirección al frontend web o móvil
+    if (redirect_uri.startsWith('hifybe-native://')) {
+      console.log('Redirección al frontend móvil');
       return res.redirect(`${redirect_uri}?access_token=${token}`);
     }
 
+    console.log('Redirección al frontend web');
     return res.redirect(redirect_uri);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
