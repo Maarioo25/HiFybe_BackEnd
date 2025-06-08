@@ -340,7 +340,13 @@ exports.spotifyAuth = passport.authenticate('spotify', {
 
 
 exports.spotifyCallback = async (req, res) => {
-  const redirect_uri = req.query.redirect_uri || process.env.FRONTEND_URL;
+  const redirect_uri = req.query.redirect_uri;
+  if (!redirect_uri) {
+    return res.status(400).json({ error: 'Falta redirect_uri' });
+  }
+  const authUrl = `https://api.mariobueno.info/usuarios/spotify?redirect_uri=${encodeURIComponent(redirect_uri)}`;
+  Linking.openURL(authUrl);
+
 
   try {
     if (!req.user) {
