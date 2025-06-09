@@ -314,20 +314,27 @@ exports.googleAuthFailureHandler = (req, res) => {
 
 // ===================== SPOTIFY OAUTH ===================== //
 
-exports.spotifyAuth = passport.authenticate('spotify', { 
-  scope: [
-  'streaming',
-  'user-read-playback-state',
-  'user-modify-playback-state',
-  'user-read-email',
-  'user-read-private',
-  'playlist-modify-public',
-  'playlist-modify-private',
-  'ugc-image-upload',
-  'user-top-read'
-],
-  showDialog: true
-});
+exports.spotifyAuth = (req, res, next) => {
+  const isMobile = req.query.mobile === "true";
+
+  passport.authenticate('spotify', {
+    scope: [
+      'streaming',
+      'user-read-playback-state',
+      'user-modify-playback-state',
+      'user-read-email',
+      'user-read-private',
+      'playlist-modify-public',
+      'playlist-modify-private',
+      'ugc-image-upload',
+      'user-top-read'
+    ],
+    showDialog: true,
+    callbackURL: isMobile 
+      ? 'hifybe://callback' 
+      : process.env.SPOTIFY_CALLBACK_URL
+  })(req, res, next);
+};
 
 
 exports.spotifyCallback = async (req, res) => {
@@ -348,13 +355,11 @@ exports.spotifyCallback = async (req, res) => {
     emitirTokenYCookie(req.user, res);
 
     const isMobile = req.get('User-Agent')?.includes('okhttp') || req.get('User-Agent')?.includes('Android');
-
     const redirectBase = isMobile
       ? 'hifybe://callback'
       : process.env.FRONTEND_URL;
 
-    res.redirect(`${redirectBase}?spotify_token=${spotifyAccessToken}`);
-
+    return res.redirect(`${redirectBase}?spotify_token=${spotifyAccessToken}`);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
