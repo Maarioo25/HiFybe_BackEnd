@@ -347,14 +347,14 @@ exports.spotifyCallback = async (req, res) => {
 
     emitirTokenYCookie(req.user, res);
 
-    const userAgent = req.headers['user-agent'] || '';
-    const isMobile = userAgent.includes('Android') || userAgent.includes('iPhone') || userAgent.includes('okhttp');
+    const isMobile = req.get('User-Agent')?.includes('okhttp') || req.get('User-Agent')?.includes('Android');
 
-    if (isMobile) {
-      return res.redirect(`hifybe://callback?token=${spotifyAccessToken}`);
-    } else {
-      return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${spotifyAccessToken}`);
-    }
+    const redirectBase = isMobile
+      ? 'hifybe://callback'
+      : process.env.FRONTEND_URL;
+
+    res.redirect(`${redirectBase}?spotify_token=${spotifyAccessToken}`);
+
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
