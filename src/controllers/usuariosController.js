@@ -112,32 +112,35 @@ exports.registrarUsuario = async (req, res) => {
 };
 
 // ===================== LOGIN ===================== //
-
 exports.loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
     const usuario = await Usuario.findOne({ email });
 
     if (!usuario)
-      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.'});
+      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.' });
 
     const valido = await bcrypt.compare(password, usuario.password);
     if (!valido)
-      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.'});
+      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.' });
 
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    emitirTokenYCookie(usuario, res);
+    // Capturamos el token que emite y lo pone en cookie
+    const token = emitirTokenYCookie(usuario, res);
 
+    // Devolvemos también el token en el body
     res.json({
       mensaje: 'Login exitoso.',
-      usuario: limpiarUsuario(usuario)
+      usuario: limpiarUsuario(usuario),
+      token
     });
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
   }
 };
+
 
 // ===================== AUTENTICACIÓN ACTUAL ===================== //
 
