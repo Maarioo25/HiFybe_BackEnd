@@ -121,43 +121,32 @@ exports.loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
     const usuario = await Usuario.findOne({ email });
-
-    if (!usuario)
-      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.'});
+    if (!usuario) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
 
     const valido = await bcrypt.compare(password, usuario.password);
-    if (!valido)
-      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.'});
+    if (!valido) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
 
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    emitirTokenYCookie(usuario, res);
-
-    res.json({
-      mensaje: 'Login exitoso.',
-      usuario: limpiarUsuario(usuario)
-    });
+    return emitirToken(usuario, req, res);
   } catch (err) {
+    console.error('Error en login:', err);
     res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
   }
 };
+
 
 // ===================== AUTENTICACIÓN ACTUAL ===================== //
 
 exports.getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-
-    const spotify = req.session?.spotify || null;
-
-    res.json({
-      user,
-      spotifyAccessToken: spotify?.accessToken || null,
-      spotifyRefreshToken: spotify?.refreshToken || null
-    });
+    const usuario = await Usuario.findById(req.user.id);
+    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    res.json({ usuario: limpiarUsuario(usuario) });
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al obtener el usuario actual' });
+    console.error('Error al obtener usuario:', err);
+    res.status(500).json({ mensaje: 'Error interno.' });
   }
 };
 
@@ -356,7 +345,7 @@ exports.spotifyCallback = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_spotify_token`);
     }
 
-    emitirTokenYCookie(req.user, res);
+    emitirTokenYCookie(req.user, req, res);
 
     const isMobile = req.get('User-Agent')?.includes('okhttp') || req.get('User-Agent')?.includes('Android');
     const redirectBase = isMobile
@@ -396,18 +385,15 @@ exports.spotifyAuthFailureHandler = (req, res) => {
 
 // ===================== LOGOUT ===================== //
 
-// controllers/authController.js
 exports.logoutUser = (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: true,
     sameSite: 'None',
-    domain: '.mariobueno.info',  
-    path: '/'                   
+    domain: '.mariobueno.info',
+    path: '/'
   });
-  return res
-    .status(200)
-    .json({ mensaje: 'Sesión cerrada exitosamente' });
+  res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
 };
 
 

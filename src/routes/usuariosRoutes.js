@@ -14,6 +14,10 @@ const {
   obtenerUsuarioPorId,
   actualizarUsuario,
   eliminarUsuario,
+  loginUsuario,
+  logoutUser,
+  getCurrentUser,
+  
   
   
   googleAuth,
@@ -104,24 +108,47 @@ router.post('/register', registrarUsuario);
  *       200:
  *         description: Inicio de sesión exitoso.
  */
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const usuario = await Usuario.findOne({ email });
-    if (!usuario) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
+router.post('/login', loginUsuario);
 
-    const valido = await bcrypt.compare(password, usuario.password);
-    if (!valido) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
+/**
+ * @swagger
+ * /usuarios/logout:
+ *   post:
+ *     summary: Cerrar sesión de usuario
+ *     description: Cierra la sesión del usuario autenticado eliminando la cookie de sesión.
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: Sesión cerrada exitosamente.
+ */
+router.post('/logout', logoutUser);
 
-    usuario.ultima_conexion = Date.now();
-    await usuario.save();
-
-    return emitirToken(usuario, req, res);
-  } catch (err) {
-    console.error('Error en login:', err);
-    res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
-  }
-});
+/**
+ * @swagger
+ * /usuarios/me:
+ *   get:
+ *     summary: Obtener datos del usuario autenticado
+ *     description: Recupera la información del usuario actualmente autenticado a través de la cookie de sesión.
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Datos del usuario autenticado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   description: Objeto con los datos del usuario (sin información sensible como contraseña).
+ *       401:
+ *         description: No autenticado o sesión inválida.
+ *       500:
+ *         description: Error del servidor.
+ */
+router.get('/me', requireAuth, getCurrentUser);
 
 /**
  * @swagger
@@ -245,68 +272,6 @@ router.get('/spotify/callback-link',
  */
 router.get('/spotify/failure', spotifyAuthFailureHandler);
 
-// Rutas que requieren autenticación
-
-/**
- * @swagger
- * /usuarios/me:
- *   get:
- *     summary: Obtener datos del usuario autenticado
- *     description: Recupera la información del usuario actualmente autenticado a través de la cookie de sesión.
- *     tags: [Usuarios]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Datos del usuario autenticado.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *                   description: Objeto con los datos del usuario (sin información sensible como contraseña).
- *       401:
- *         description: No autenticado o sesión inválida.
- *       500:
- *         description: Error del servidor.
- */
-router.get('/me', requireAuth, async (req, res) => {
-  try {
-    const usuario = await Usuario.findById(req.user.id);
-    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
-    res.json({ usuario: limpiarUsuario(usuario) });
-  } catch (err) {
-    console.error('Error al obtener usuario:', err);
-    res.status(500).json({ mensaje: 'Error interno.' });
-  }
-});
-
-/**
- * @swagger
- * /usuarios/logout:
- *   post:
- *     summary: Cerrar sesión de usuario
- *     description: Cierra la sesión del usuario autenticado eliminando la cookie de sesión.
- *     tags: [Usuarios]
- *     responses:
- *       200:
- *         description: Sesión cerrada exitosamente.
- *       500:
- *         description: Error al cerrar sesión.
- */
-router.post('/logout', (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    domain: '.mariobueno.info',
-    path: '/'
-  });
-  res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
-});
-
 /**
  * @swagger
  * /usuarios/ubicacion:
@@ -332,12 +297,23 @@ router.post('/logout', (req, res) => {
  */
 router.post('/ubicacion', requireAuth, actualizarUbicacion);
 
+/**
+ * @swagger
+ * /usuarios/ocultar-ubicacion:
+ *   post:
+ *     summary: Oculta la ubicación del usuario
+ *     tags: [Usuarios]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Ubicación ocultada correctamente
+ */
 router.post('/ocultar-ubicacion', requireAuth, ocultarUbicacion);
 
 router.put('/:id/redes', requireAuth, actualizarRedesSociales);
 
 router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
-
 
 
 /**
