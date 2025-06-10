@@ -142,12 +142,19 @@ exports.loginUsuario = async (req, res) => {
 
 exports.getCurrentUser = async (req, res) => {
   try {
+    console.log('[Usuario] req.user:', req.user); // <-- LOG
+
     const usuario = await Usuario.findById(req.user.id);
-    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
-    res.json({ usuario: limpiarUsuario(usuario) });
+    if (!usuario) {
+      console.warn('[Usuario] Usuario no encontrado');
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    console.log('[Usuario] Usuario encontrado:', usuario.email); // <-- LOG
+    res.json(limpiarUsuario(usuario));
   } catch (err) {
-    console.error('Error al obtener usuario:', err);
-    res.status(500).json({ mensaje: 'Error interno.' });
+    console.error('[Usuario] Error al obtener usuario actual:', err);
+    res.status(500).json({ mensaje: 'Error al obtener usuario actual' });
   }
 };
 
@@ -309,8 +316,6 @@ exports.googleAuthFailureHandler = (req, res) => {
 // ===================== SPOTIFY OAUTH ===================== //
 
 exports.spotifyAuth = (req, res, next) => {
-  const isMobile = req.query.mobile === "true";
-
   passport.authenticate('spotify', {
     scope: [
       'streaming',
