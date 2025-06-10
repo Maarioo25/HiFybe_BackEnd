@@ -234,23 +234,6 @@ router.get(
   spotifyCallback
 );
 
-router.get('/spotify/connect',
-  passport.authenticate('spotify-link', {
-    scope: [
-      'user-read-email',
-      'user-read-private',
-      'user-read-playback-state',
-      'user-modify-playback-state',
-      'streaming',
-      'playlist-modify-public',
-      'playlist-modify-private',
-      'ugc-image-upload',
-      'user-top-read'
-    ],
-    session: false
-  })
-);
-
 // Callback después del login de Spotify
 router.get('/spotify/callback-link',
   passport.authenticate('spotify-link', {

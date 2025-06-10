@@ -43,12 +43,13 @@ async function refrescarToken(refreshToken) {
 
 
 function emitirTokenYCookie(usuario, req, res) {
-  const isMobile = req.body?.mobile === true;
+  const isMobile = req.query?.mobile === "true" || req.body?.mobile === true;
 
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   if (isMobile) {
-    return res.json({ token, usuario: limpiarUsuario(usuario) });
+    // Redirige a la URI personalizada que capturas con Linking en la app
+    return res.redirect(`hifybe-movil://spotify-auth-callback?token=${token}`);
   } else {
     res.cookie('token', token, {
       httpOnly: true,
@@ -62,6 +63,7 @@ function emitirTokenYCookie(usuario, req, res) {
     return res.redirect(`${process.env.FRONTEND_URL}`);
   }
 }
+
 
 
 // ===================== REGISTRO ===================== //
@@ -322,11 +324,13 @@ exports.spotifyAuth = (req, res, next) => {
       'user-top-read'
     ],
     showDialog: true,
+    session: false,
     callbackURL: isMobile 
-      ? 'hifybe://callback' 
+      ? 'hifybe-movil://spotify-auth-callback' 
       : process.env.SPOTIFY_CALLBACK_URL
   })(req, res, next);
 };
+
 
 
 exports.spotifyCallback = async (req, res) => {
@@ -338,7 +342,6 @@ exports.spotifyCallback = async (req, res) => {
     req.user.ultima_conexion = Date.now();
     await req.user.save();
 
-    // esta función YA incluye el redirect o json
     return emitirTokenYCookie(req.user, req, res);
 
   } catch (err) {
