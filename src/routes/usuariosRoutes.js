@@ -1,9 +1,12 @@
 // routes/usuarios.js
+const express = require('express');
 const passport = require('passport');
 const requireAuth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const jwt = require('jsonwebtoken');
 const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
+const router = express.Router();
 
 const {
   registrarUsuario,
@@ -101,24 +104,24 @@ router.post('/register', registrarUsuario);
  *       200:
  *         description: Inicio de sesión exitoso.
  */
-  router.post('/login', async (req, res) => {
-    try {
-      const { email, password, mobile } = req.body;
-      const usuario = await Usuario.findOne({ email });
-      if (!usuario) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password, mobile } = req.body;
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
 
-      const valido = await bcrypt.compare(password, usuario.password);
-      if (!valido) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
+    const valido = await bcrypt.compare(password, usuario.password);
+    if (!valido) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
 
-      usuario.ultima_conexion = Date.now();
-      await usuario.save();
+    usuario.ultima_conexion = Date.now();
+    await usuario.save();
 
-      return emitirToken(usuario, res, mobile === true);
-    } catch (err) {
-      console.error('Error en login:', err);
-      res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
-    }
-  });
+    return emitirToken(usuario, res, mobile === true);
+  } catch (err) {
+    console.error('Error en login:', err);
+    res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
+  }
+});
 
 /**
  * @swagger
@@ -269,16 +272,16 @@ router.get('/spotify/failure', spotifyAuthFailureHandler);
  *       500:
  *         description: Error del servidor.
  */
-  router.get('/me', requireAuth, async (req, res) => {
-    try {
-      const usuario = await Usuario.findById(req.user.id);
-      if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
-      res.json({ usuario: limpiarUsuario(usuario) });
-    } catch (err) {
-      console.error('Error al obtener usuario:', err);
-      res.status(500).json({ mensaje: 'Error interno.' });
-    }
-  });
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.user.id);
+    if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    res.json({ usuario: limpiarUsuario(usuario) });
+  } catch (err) {
+    console.error('Error al obtener usuario:', err);
+    res.status(500).json({ mensaje: 'Error interno.' });
+  }
+});
 
 /**
  * @swagger
@@ -293,16 +296,16 @@ router.get('/spotify/failure', spotifyAuthFailureHandler);
  *       500:
  *         description: Error al cerrar sesión.
  */
-  router.post('/logout', (req, res) => {
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      domain: '.mariobueno.info',
-      path: '/'
-    });
-    res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+    domain: '.mariobueno.info',
+    path: '/'
   });
+  res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
+});
 
 /**
  * @swagger

@@ -2,9 +2,11 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const qs = require('qs');
 const axios = require('axios')
+const express = require('express');
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
+const router = express.Router();
 
 const User = require('../models/usuario');
 
