@@ -8,8 +8,6 @@ const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 
-const User = require('../models/usuario');
-
 // ===================== HELPERS ===================== //
 
 function limpiarUsuario(usuario) {
@@ -129,7 +127,7 @@ exports.loginUsuario = async (req, res) => {
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    return emitirToken(usuario, req, res);
+    return emitirTokenYCookie(usuario, req, res);
   } catch (err) {
     console.error('Error en login:', err);
     res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
@@ -339,31 +337,26 @@ exports.spotifyCallback = async (req, res) => {
     req.user.ultima_conexion = Date.now();
     await req.user.save();
 
-    const spotifyAccessToken = req.user.spotifyAccessToken;
-    if (!spotifyAccessToken) {
-      console.error('No se encontró accessToken en req.user');
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_spotify_token`);
-    }
+    // esta función YA incluye el redirect o json
+    return emitirTokenYCookie(req.user, req, res);
 
-    emitirTokenYCookie(req.user, req, res);
-
-    const isMobile = req.get('User-Agent')?.includes('okhttp') || req.get('User-Agent')?.includes('Android');
-    const redirectBase = isMobile
-      ? 'hifybe://callback'
-      : process.env.FRONTEND_URL;
-
-    return res.redirect(`${redirectBase}?spotify_token=${spotifyAccessToken}`);
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
     return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
 
+
 exports.spotifyLinkCallback = async (req, res) => {
   try {
-    if (!req.user || !req.user.spotifyAccessToken) {
-      return res.redirect(`${process.env.FRONTEND_URL}?error=spotify_link_failed`);
+    if (!req.user) {
+      return res.redirect(`${process.env.FRONTEND_URL}?error=sin_usuario`);
     }
+    
+    if (!req.user.spotifyAccessToken) {
+      return res.redirect(`${process.env.FRONTEND_URL}?error=sin_token`);
+    }
+    
 
     const token = req.user.spotifyAccessToken;
 
