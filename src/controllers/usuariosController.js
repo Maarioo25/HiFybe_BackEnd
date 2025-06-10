@@ -44,7 +44,7 @@ async function refrescarToken(refreshToken) {
 }
 
 
-function emitirToken(usuario, req, res) {
+function emitirTokenYCookie(usuario, req, res) {
   const isMobile = req.body?.mobile === true;
 
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
