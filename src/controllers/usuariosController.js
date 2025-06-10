@@ -58,6 +58,7 @@ function emitirTokenYCookie(usuario, req, res) {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
+    console.log("✅ Cookie enviada.");
     return res.redirect(`${process.env.FRONTEND_URL}`);
   }
 }
@@ -386,6 +387,7 @@ exports.logoutUser = (req, res) => {
     domain: '.mariobueno.info',
     path: '/'
   });
+  console.log("✅ Cookie enviada.");
   res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
 };
 
