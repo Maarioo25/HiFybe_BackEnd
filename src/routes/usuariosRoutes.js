@@ -106,7 +106,7 @@ router.post('/register', registrarUsuario);
  */
 router.post('/login', async (req, res) => {
   try {
-    const { email, password, mobile } = req.body;
+    const { email, password } = req.body;
     const usuario = await Usuario.findOne({ email });
     if (!usuario) return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
 
@@ -116,7 +116,7 @@ router.post('/login', async (req, res) => {
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    return emitirToken(usuario, res, mobile === true);
+    return emitirToken(usuario, req, res);
   } catch (err) {
     console.error('Error en login:', err);
     res.status(500).json({ mensaje: 'Error al iniciar sesión.' });

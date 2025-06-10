@@ -44,15 +44,13 @@ async function refrescarToken(refreshToken) {
 }
 
 
-function emitirTokenYCookie(usuario, res, isMobile = false) {
+function emitirToken(usuario, req, res) {
+  const isMobile = req.body?.mobile === true;
+
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   if (isMobile) {
-    return res.json({
-      mensaje: 'Login exitoso.',
-      token,
-      usuario: limpiarUsuario(usuario)
-    });
+    return res.json({ token, usuario: limpiarUsuario(usuario) });
   } else {
     res.cookie('token', token, {
       httpOnly: true,
@@ -62,9 +60,10 @@ function emitirTokenYCookie(usuario, res, isMobile = false) {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
-    return res.json({ mensaje: 'Login exitoso.', usuario: limpiarUsuario(usuario) });
+    return res.redirect(`${process.env.FRONTEND_URL}`);
   }
 }
+
 
 // ===================== REGISTRO ===================== //
 
