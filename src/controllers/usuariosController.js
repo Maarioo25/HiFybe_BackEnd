@@ -43,7 +43,7 @@ async function refrescarToken(refreshToken) {
 
 
 function emitirTokenYCookie(usuario, req, res) {
-  const isMobile = req.query?.mobile === "true" || req.body?.mobile === true;
+  const isMobile = req.query?.mobile === "true" || req.query?.state === "mobile" || req.body?.mobile === true;
 
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -325,9 +325,8 @@ exports.spotifyAuth = (req, res, next) => {
     ],
     showDialog: true,
     session: false,
-    callbackURL: isMobile 
-      ? 'hifybe-movil://spotify-auth-callback' 
-      : process.env.SPOTIFY_CALLBACK_URL
+    callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+    state: req.query.mobile === "true" ? "mobile" : "web"
   })(req, res, next);
 };
 
