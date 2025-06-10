@@ -1,17 +1,16 @@
-const Usuario = require('../models/usuario');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const qs = require('qs');
 const axios = require('axios')
+const jwt = require('jsonwebtoken');
+const Usuario = require('../models/usuario');
+const bcrypt = require('bcryptjs');
 
 const User = require('../models/usuario');
 
 // ===================== HELPERS ===================== //
 
-const limpiarUsuario = (usuario) => {
-  if (!usuario || !usuario._doc) return usuario;
+function limpiarUsuario(usuario) {
   const {
     password,
     contrasena_reset_token,
@@ -20,7 +19,8 @@ const limpiarUsuario = (usuario) => {
     ...resto
   } = usuario._doc;
   return resto;
-};
+}
+
 
 async function refrescarToken(refreshToken) {
   const authHeader = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64');
@@ -42,24 +42,27 @@ async function refrescarToken(refreshToken) {
 }
 
 
-const emitirTokenYCookie = (usuario, res) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('Falta JWT_SECRET en variables de entorno');
-  }
-
+function emitirTokenYCookie(usuario, res, isMobile = false) {
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    sameSite: 'None',
-    secure: true,
-    domain: '.mariobueno.info',
-    path: '/',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
-  });
-
-  return token;
-};
+  if (isMobile) {
+    return res.json({
+      mensaje: 'Login exitoso.',
+      token,
+      usuario: limpiarUsuario(usuario)
+    });
+  } else {
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: true,
+      domain: '.mariobueno.info',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    return res.json({ mensaje: 'Login exitoso.', usuario: limpiarUsuario(usuario) });
+  }
+}
 
 // ===================== REGISTRO ===================== //
 
@@ -112,35 +115,32 @@ exports.registrarUsuario = async (req, res) => {
 };
 
 // ===================== LOGIN ===================== //
+
 exports.loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
     const usuario = await Usuario.findOne({ email });
 
     if (!usuario)
-      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.' });
+      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.'});
 
     const valido = await bcrypt.compare(password, usuario.password);
     if (!valido)
-      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.' });
+      return res.status(400).json({ mensaje: 'El usuario o la contraseña no coinciden.'});
 
     usuario.ultima_conexion = Date.now();
     await usuario.save();
 
-    // Capturamos el token que emite y lo pone en cookie
-    const token = emitirTokenYCookie(usuario, res);
+    emitirTokenYCookie(usuario, res);
 
-    // Devolvemos también el token en el body
     res.json({
       mensaje: 'Login exitoso.',
-      usuario: limpiarUsuario(usuario),
-      token
+      usuario: limpiarUsuario(usuario)
     });
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
   }
 };
-
 
 // ===================== AUTENTICACIÓN ACTUAL ===================== //
 
