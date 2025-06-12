@@ -4,7 +4,6 @@ const Usuario = require('../models/usuario');
 
 exports.obtenerAmistades = async (req, res) => {
   const userId = req.params.userId;
-  // buscamos las amistades aceptadas e incluimos info de ambos usuarios
   const amistades = await Amistad
     .find({
       $or: [
@@ -16,9 +15,8 @@ exports.obtenerAmistades = async (req, res) => {
     .populate('usuario_id_1', 'nombre foto_perfil ubicarion playlistsPublicas estado cancionDestacada ultimaActividad online')
     .populate('usuario_id_2', 'nombre foto_perfil ubicarion playlistsPublicas estado cancionDestacada ultimaActividad online');
 
-  // transformamos para devolver siempre el otro usuario como “amigo”
   const friends = amistades
-  .filter(a => a.usuario_id_1 && a.usuario_id_2) // <-- esto evita el null
+  .filter(a => a.usuario_id_1 && a.usuario_id_2)
   .map(a => {
     const amigo = a.usuario_id_1._id.toString() === userId
       ? a.usuario_id_2
@@ -31,7 +29,8 @@ exports.obtenerAmistades = async (req, res) => {
       playlistsPublicas: amigo.playlistsPublicas,
       estado: amigo.estado,
       cancionDestacada: amigo.cancionDestacada,
-      ultimaActividad: amigo.ultimaActividad
+      ultimaActividad: amigo.ultimaActividad,
+      amistadId: a._id
     };
   });
 
@@ -103,6 +102,8 @@ exports.eliminarAmistad = async (req, res) => {
   await Amistad.findByIdAndDelete(req.params.amistadId);
   res.json({ mensaje: 'Amistad eliminada' });
 };
+
+// ===================== SOLICITUDES ===================== //
 
 exports.obtenerSolicitudesAmistad = async (req, res) => {
   const solicitudes = await SolicitudAmistad.find({
