@@ -48,7 +48,6 @@ function emitirTokenYCookie(usuario, req, res) {
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   if (isMobile) {
-    // Redirige a la URI personalizada que capturas con Linking en la app
     return res.redirect(`hifybe-movil://spotify-auth-callback?token=${token}`);
   } else {
     res.cookie('token', token, {
@@ -60,9 +59,10 @@ function emitirTokenYCookie(usuario, req, res) {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
     console.log("✅ Cookie enviada.");
-    return res.redirect(`${process.env.FRONTEND_URL}`);
+    return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
 }
+
 
 
 
