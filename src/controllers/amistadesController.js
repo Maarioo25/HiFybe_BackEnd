@@ -30,7 +30,7 @@ exports.obtenerAmistades = async (req, res) => {
       estado: amigo.estado,
       cancionDestacada: amigo.cancionDestacada,
       ultimaActividad: amigo.ultimaActividad,
-      amistadId: a._id
+      amistadId: amigo._id
     };
   });
 
