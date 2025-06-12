@@ -25,11 +25,17 @@ const app = express();
   ];
 
   app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, origin); // ✅ devuelve el origen exacto
+      } else {
+        callback(new Error('No permitido por CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Authorization','Set-Cookie']
+    exposedHeaders: ['Authorization', 'Set-Cookie']
   }));
 
   app.use(express.json());
