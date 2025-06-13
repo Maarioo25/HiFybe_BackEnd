@@ -3,9 +3,6 @@ const express = require('express');
 const passport = require('passport');
 const requireAuth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const jwt = require('jsonwebtoken');
-const Usuario = require('../models/usuario');
-const bcrypt = require('bcryptjs');
 const router = express.Router();
 
 const {
@@ -17,31 +14,20 @@ const {
   loginUsuario,
   logoutUser,
   getCurrentUser,
-  
-  
-  
   googleAuth,
   googleCallback,
   googleAuthFailureHandler,
-
-
-  spotifyAuth, 
-  spotifyCallback, 
+  spotifyAuth,
+  spotifyCallback,
   spotifyAuthFailureHandler,
   spotifyLinkCallback,
-
-
   actualizarUbicacion,
   obtenerUsuariosCercanos,
-
   actualizarRedesSociales,
   actualizarPreferenciasUsuario,
-  
   actualizarCancion,
   obtenerCancionActual,
-
   ocultarUbicacion,
-
   subirFotoPerfil
 } = require('../controllers/usuariosController');
 
@@ -59,15 +45,18 @@ const {
  * /usuarios/register:
  *   post:
  *     summary: Registro de un nuevo usuario
- *     description: Endpoint para crear un nuevo usuario en la plataforma.
  *     tags: [Usuarios]
  *     requestBody:
- *       description: Datos necesarios para registrar el usuario.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - nombre
+ *               - apellidos
+ *               - email
+ *               - password
  *             properties:
  *               nombre:
  *                 type: string
@@ -75,6 +64,7 @@ const {
  *                 type: string
  *               email:
  *                 type: string
+ *                 format: email
  *               password:
  *                 type: string
  *     responses:
@@ -90,18 +80,20 @@ router.post('/register', registrarUsuario);
  * /usuarios/login:
  *   post:
  *     summary: Autenticación de usuario
- *     description: Endpoint para iniciar sesión con las credenciales del usuario.
  *     tags: [Usuarios]
  *     requestBody:
- *       description: Credenciales de acceso del usuario.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
  *               password:
  *                 type: string
  *     responses:
@@ -115,7 +107,6 @@ router.post('/login', loginUsuario);
  * /usuarios/logout:
  *   post:
  *     summary: Cerrar sesión de usuario
- *     description: Cierra la sesión del usuario autenticado eliminando la cookie de sesión.
  *     tags: [Usuarios]
  *     responses:
  *       200:
@@ -128,7 +119,6 @@ router.post('/logout', logoutUser);
  * /usuarios/me:
  *   get:
  *     summary: Obtener datos del usuario autenticado
- *     description: Recupera la información del usuario actualmente autenticado a través de la cookie de sesión.
  *     tags: [Usuarios]
  *     security:
  *       - cookieAuth: []
@@ -141,8 +131,7 @@ router.post('/logout', logoutUser);
  *               type: object
  *               properties:
  *                 user:
- *                   type: object
- *                   description: Objeto con los datos del usuario (sin información sensible como contraseña).
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: No autenticado o sesión inválida.
  *       500:
@@ -155,7 +144,6 @@ router.get('/me', requireAuth, getCurrentUser);
  * /usuarios/google:
  *   get:
  *     summary: Iniciar autenticación con Google
- *     description: Redirige al usuario al flujo de OAuth de Google.
  *     tags: [Usuarios]
  *     responses:
  *       302:
@@ -168,7 +156,6 @@ router.get('/google', googleAuth);
  * /usuarios/google/callback:
  *   get:
  *     summary: Callback de autenticación de Google
- *     description: Punto de retorno de Google con el código de autorización.
  *     tags: [Usuarios]
  *     parameters:
  *       - in: query
@@ -192,7 +179,6 @@ router.get(
  * /usuarios/google/failure:
  *   get:
  *     summary: Manejador de fallo de autenticación con Google
- *     description: Endpoint al que Google redirige en caso de fallo de autenticación. Redirige al frontend con un mensaje de error.
  *     tags: [Usuarios]
  *     responses:
  *       302:
@@ -200,16 +186,15 @@ router.get(
  */
 router.get('/google/failure', googleAuthFailureHandler);
 
-
 /**
  * @swagger
  * /usuarios/spotify:
  *   get:
  *     summary: Iniciar autenticación con Spotify
- *     tags: [Autenticación]
+ *     tags: [Usuarios]
  *     responses:
  *       302:
- *         description: Redirección a la página de inicio de sesión de Spotify
+ *         description: Redirección a la página de inicio de sesión de Spotify.
  */
 router.get('/spotify', spotifyAuth);
 
@@ -218,23 +203,31 @@ router.get('/spotify', spotifyAuth);
  * /usuarios/spotify/callback:
  *   get:
  *     summary: Callback de autenticación de Spotify
- *     tags: [Autenticación]
+ *     tags: [Usuarios]
  *     responses:
  *       200:
- *         description: Usuario autenticado correctamente
+ *         description: Usuario autenticado correctamente.
  *       302:
- *         description: Redirección en caso de fallo de autenticación
+ *         description: Redirección en caso de fallo de autenticación.
  */
 router.get(
   '/spotify/callback',
-  passport.authenticate('spotify', {
-    failureRedirect: '/usuarios/spotify/failure',
-    session: false
-  }),
+  passport.authenticate('spotify', { failureRedirect: '/usuarios/spotify/failure', session: false }),
   spotifyCallback
 );
 
-router.get('/spotify/connect',
+/**
+ * @swagger
+ * /usuarios/spotify/connect:
+ *   get:
+ *     summary: Conectar cuenta de Spotify al perfil de usuario
+ *     tags: [Usuarios]
+ *     responses:
+ *       302:
+ *         description: Redirección para autorización de enlace con Spotify.
+ */
+router.get(
+  '/spotify/connect',
   passport.authenticate('spotify-link', {
     scope: [
       'user-read-email',
@@ -251,12 +244,19 @@ router.get('/spotify/connect',
   })
 );
 
-// Callback después del login de Spotify
-router.get('/spotify/callback-link',
-  passport.authenticate('spotify-link', {
-    failureRedirect: `${process.env.FRONTEND_URL}?error=spotify_link_failed`,
-    session: false
-  }),
+/**
+ * @swagger
+ * /usuarios/spotify/callback-link:
+ *   get:
+ *     summary: Callback tras enlazar cuenta de Spotify
+ *     tags: [Usuarios]
+ *     responses:
+ *       302:
+ *         description: Redirección final tras enlace de Spotify.
+ */
+router.get(
+  '/spotify/callback-link',
+  passport.authenticate('spotify-link', { failureRedirect: `${process.env.FRONTEND_URL}?error=spotify_link_failed`, session: false }),
   spotifyLinkCallback
 );
 
@@ -264,11 +264,11 @@ router.get('/spotify/callback-link',
  * @swagger
  * /usuarios/spotify/failure:
  *   get:
- *     summary: Maneja el fallo de autenticación de Spotify
- *     tags: [Autenticación]
+ *     summary: Maneja el fallo de autenticación con Spotify
+ *     tags: [Usuarios]
  *     responses:
  *       401:
- *         description: Fallo en la autenticación con Spotify
+ *         description: Fallo en la autenticación con Spotify.
  */
 router.get('/spotify/failure', spotifyAuthFailureHandler);
 
@@ -277,7 +277,7 @@ router.get('/spotify/failure', spotifyAuthFailureHandler);
  * /usuarios/ubicacion:
  *   post:
  *     summary: Actualiza la ubicación del usuario
- *     tags: [Usuarios]
+ *     tags: [Ubicación]
  *     security:
  *       - cookieAuth: []
  *     requestBody:
@@ -286,6 +286,9 @@ router.get('/spotify/failure', spotifyAuthFailureHandler);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - latitude
+ *               - longitude
  *             properties:
  *               latitude:
  *                 type: number
@@ -293,7 +296,7 @@ router.get('/spotify/failure', spotifyAuthFailureHandler);
  *                 type: number
  *     responses:
  *       200:
- *         description: Ubicación actualizada correctamente
+ *         description: Ubicación actualizada correctamente.
  */
 router.post('/ubicacion', requireAuth, actualizarUbicacion);
 
@@ -302,27 +305,21 @@ router.post('/ubicacion', requireAuth, actualizarUbicacion);
  * /usuarios/ocultar-ubicacion:
  *   post:
  *     summary: Oculta la ubicación del usuario
- *     tags: [Usuarios]
+ *     tags: [Ubicación]
  *     security:
  *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: Ubicación ocultada correctamente
+ *         description: Ubicación ocultada correctamente.
  */
 router.post('/ocultar-ubicacion', requireAuth, ocultarUbicacion);
-
-router.put('/:id/redes', requireAuth, actualizarRedesSociales);
-
-router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
-
 
 /**
  * @swagger
  * /usuarios/cerca:
  *   get:
  *     summary: Obtener usuarios cercanos
- *     description: Devuelve la lista de usuarios que están compartiendo ubicación y se encuentran dentro del radio especificado (en km) de las coordenadas proporcionadas.
- *     tags: [Usuarios]
+ *     tags: [Ubicación]
  *     security:
  *       - cookieAuth: []
  *     parameters:
@@ -344,72 +341,24 @@ router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
  *           type: number
  *           default: 10
  *         required: false
- *         description: Radio de búsqueda en kilómetros. Si no se especifica, se usan 10 km por defecto.
+ *         description: Radio de búsqueda en kilómetros.
  *     responses:
  *       200:
  *         description: Lista de usuarios cercanos encontrados.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   nombre:
- *                     type: string
- *                   apellidos:
- *                     type: string
- *                   foto_perfil:
- *                     type: string
- *                     description: URL de la foto de perfil.
- *                   ubicacion:
- *                     type: object
- *                     properties:
- *                       type:
- *                         type: string
- *                         example: Point
- *                       coordinates:
- *                         type: array
- *                         items:
- *                           type: number
- *                         description: [longitud, latitud]
  *       400:
- *         description: Parámetros de consulta inválidos (p.ej., latitud o longitud no numéricos).
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
+ *         description: Parámetros de consulta inválidos.
  *       401:
- *         description: No autenticado o token inválido/expirado.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 mensaje:
- *                   type: string
+ *         description: No autenticado o token inválido.
  *       500:
  *         description: Error interno al buscar usuarios cercanos.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
  */
 router.get('/cerca', requireAuth, obtenerUsuariosCercanos);
-
 
 /**
  * @swagger
  * /usuarios:
  *   get:
  *     summary: Listado de usuarios
- *     description: Endpoint para obtener la lista de todos los usuarios registrados. Requiere autenticación.
  *     tags: [Usuarios]
  *     security:
  *       - cookieAuth: []
@@ -426,16 +375,15 @@ router.get('/', requireAuth, obtenerUsuarios);
  * /usuarios/{id}:
  *   get:
  *     summary: Obtener información de un usuario por su ID
- *     description: Recupera los datos completos de un usuario a partir del identificador proporcionado. Requiere autenticación.
  *     tags: [Usuarios]
  *     security:
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: ID único del usuario.
  *     responses:
  *       200:
@@ -454,19 +402,17 @@ router.get('/:id', requireAuth, obtenerUsuarioPorId);
  * /usuarios/{id}:
  *   put:
  *     summary: Actualización de datos de usuario
- *     description: Actualiza la información de un usuario existente identificándolo por su ID. Requiere autenticación.
  *     tags: [Usuarios]
  *     security:
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: Identificador único del usuario.
  *     requestBody:
- *       description: Objeto JSON con la información actualizada del usuario.
  *       required: true
  *       content:
  *         application/json:
@@ -481,11 +427,6 @@ router.get('/:id', requireAuth, obtenerUsuarioPorId);
  *                 type: string
  *               foto_perfil:
  *                 type: string
- *             example:
- *               nombre: "Nuevo Nombre"
- *               apellidos: "Nuevos Apellidos"
- *               biografia: "Nueva biografía"
- *               foto_perfil: "https://imagen.jpg"
  *     responses:
  *       200:
  *         description: Usuario actualizado correctamente.
@@ -501,16 +442,15 @@ router.put('/:id', requireAuth, actualizarUsuario);
  * /usuarios/{id}:
  *   delete:
  *     summary: Eliminación de usuario
- *     description: Elimina el usuario identificado por su ID. Requiere autenticación.
  *     tags: [Usuarios]
  *     security:
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: ID del usuario a eliminar.
  *     responses:
  *       200:
@@ -522,17 +462,158 @@ router.put('/:id', requireAuth, actualizarUsuario);
  */
 router.delete('/:id', requireAuth, eliminarUsuario);
 
+/**
+ * @swagger
+ * /usuarios/{id}/redes:
+ *   put:
+ *     summary: Actualizar redes sociales del usuario
+ *     tags: [Social y Preferencias]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               facebook:
+ *                 type: string
+ *               instagram:
+ *                 type: string
+ *               twitter:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Redes sociales actualizadas correctamente.
+ *       401:
+ *         description: No autenticado.
+ */
+router.put('/:id/redes', requireAuth, actualizarRedesSociales);
 
-//--------------Ultima canción escuchada-------------//
+/**
+ * @swagger
+ * /usuarios/{id}/preferencias:
+ *   put:
+ *     summary: Actualizar preferencias del usuario
+ *     tags: [Social y Preferencias]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               genero_musical:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Preferencias actualizadas correctamente.
+ *       401:
+ *         description: No autenticado.
+ */
+router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
 
+/**
+ * @swagger
+ * /usuarios/{id}/cancion:
+ *   put:
+ *     summary: Actualizar última canción escuchada
+ *     tags: [Música]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               artista:
+ *                 type: string
+ *               titulo:
+ *                 type: string
+ *               album:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Canción actualizada correctamente.
+ */
 router.put('/:id/cancion', actualizarCancion);
 
+/**
+ * @swagger
+ * /usuarios/{id}/cancion:
+ *   get:
+ *     summary: Obtener última canción escuchada
+ *     tags: [Música]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario.
+ *     responses:
+ *       200:
+ *         description: Detalles de la última canción.
+ */
 router.get('/:id/cancion', obtenerCancionActual);
 
-
-//------------Imagen----------------------------//
-
+/**
+ * @swagger
+ * /usuarios/{id}/foto:
+ *   post:
+ *     summary: Subir foto de perfil
+ *     tags: [Multimedia]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               foto:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Foto de perfil actualizada correctamente.
+ *       401:
+ *         description: No autenticado.
+ */
 router.post('/:id/foto', requireAuth, upload.single('foto'), subirFotoPerfil);
-
 
 module.exports = router;
