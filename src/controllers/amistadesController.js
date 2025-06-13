@@ -99,9 +99,18 @@ exports.responderSolicitudAmistad = async (req, res) => {
 
 
 exports.eliminarAmistad = async (req, res) => {
-  await Amistad.findByIdAndDelete(req.params.amistadId);
-  res.json({ mensaje: 'Amistad eliminada' });
+  try {
+    const result = await Amistad.findByIdAndDelete(req.params.amistadId);
+    if (!result) {
+      return res.status(404).json({ error: 'Amistad no encontrada' });
+    }
+    res.json({ mensaje: 'Amistad eliminada correctamente', deleted: result });
+  } catch (err) {
+    console.error('Error al eliminar amistad:', err);
+    res.status(500).json({ error: 'Error al eliminar amistad' });
+  }
 };
+
 
 // ===================== SOLICITUDES ===================== //
 
