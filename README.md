@@ -2,9 +2,10 @@
 
 Este repositorio contiene el **BackEnd** de **HiFybe**, una red social musical que conecta a usuarios por su ubicación y gustos musicales mediante integración con Spotify. Implementa autenticación segura, gestión de usuarios, amigos, chats, playlists y ubicación.
 
-🔗 Repositorio: [HiFybe\_BackEnd](https://github.com/Maarioo25/HiFybe_BackEnd)
-🚀 Web desplegada: [https://mariobueno.info](https://mariobueno.info)
-🚀 Backend desplegado: [https://api.mariobueno.info](https://api.mariobueno.info)
+- 🔗 Repositorio: [HiFybe\_BackEnd](https://github.com/Maarioo25/HiFybe_BackEnd)
+- 🚀 Web desplegada: [https://mariobueno.info](https://mariobueno.info)
+- 🚀 Backend desplegado: [https://api.mariobueno.info](https://api.mariobueno.info)
+- 📽️ Presentación: [Ver en Canva](https://www.canva.com/design/DAGqML3KOHU/Gmd0HagvLIDl1Kx24MKn_w/view?utm_content=DAGqML3KOHU&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=haca5c05453)
 
 ---
 
