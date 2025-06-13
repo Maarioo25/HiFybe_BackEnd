@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   obtenerNotificaciones,
   marcarNotificacionLeida,
-  eliminarNotificacion, 
+  eliminarNotificacion,
   crearNotificacion
 } = require('../controllers/notificacionesController');
 
@@ -31,6 +31,35 @@ const {
  *     responses:
  *       200:
  *         description: Notificaciones obtenidas correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: ID de la notificación.
+ *                   usuarioId:
+ *                     type: string
+ *                     description: ID del usuario receptor.
+ *                   contenido:
+ *                     type: string
+ *                     description: Mensaje de la notificación.
+ *                   leido:
+ *                     type: boolean
+ *                     description: Indica si la notificación ha sido leída.
+ *                   fecha:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Fecha y hora de creación.
+ *       400:
+ *         description: ID de usuario inválido.
+ *       404:
+ *         description: No se encontraron notificaciones para el usuario.
+ *       500:
+ *         description: Error interno del servidor.
  */
 router.get('/usuarios/:usuarioId', obtenerNotificaciones);
 
@@ -47,6 +76,9 @@ router.get('/usuarios/:usuarioId', obtenerNotificaciones);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - usuario_id
+ *               - contenido
  *             properties:
  *               usuario_id:
  *                 type: string
@@ -54,15 +86,26 @@ router.get('/usuarios/:usuarioId', obtenerNotificaciones);
  *               contenido:
  *                 type: string
  *                 description: Contenido del mensaje de la notificación.
+ *             example:
+ *               usuario_id: "usuario123"
+ *               contenido: "Tu amigo ha compartido una playlist contigo."
  *     responses:
  *       201:
  *         description: Notificación creada correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: ID de la notificación creada.
+ *       400:
+ *         description: Datos de entrada inválidos.
  *       500:
  *         description: Error al crear la notificación.
  */
-
 router.post('/', crearNotificacion);
-
 
 /**
  * @swagger
@@ -81,6 +124,12 @@ router.post('/', crearNotificacion);
  *     responses:
  *       200:
  *         description: Notificación marcada como leída correctamente.
+ *       400:
+ *         description: ID de notificación inválido.
+ *       404:
+ *         description: Notificación no encontrada.
+ *       500:
+ *         description: Error interno del servidor.
  */
 router.put('/:id/leido', marcarNotificacionLeida);
 
@@ -101,6 +150,12 @@ router.put('/:id/leido', marcarNotificacionLeida);
  *     responses:
  *       200:
  *         description: Notificación eliminada correctamente.
+ *       400:
+ *         description: ID de notificación inválido.
+ *       404:
+ *         description: Notificación no encontrada.
+ *       500:
+ *         description: Error interno del servidor.
  */
 router.delete('/:id', eliminarNotificacion);
 

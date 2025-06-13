@@ -26,6 +26,28 @@ const {
  *     responses:
  *       200:
  *         description: Lista de canciones obtenida correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: ID de la canción.
+ *                   titulo:
+ *                     type: string
+ *                   artista:
+ *                     type: string
+ *                   album:
+ *                     type: string
+ *                   genero:
+ *                     type: string
+ *                   duracion:
+ *                     type: number
+ *                   url:
+ *                     type: string
  */
 router.get('/', obtenerCanciones);
 
@@ -46,6 +68,25 @@ router.get('/', obtenerCanciones);
  *     responses:
  *       200:
  *         description: Canción obtenida correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 titulo:
+ *                   type: string
+ *                 artista:
+ *                   type: string
+ *                 album:
+ *                   type: string
+ *                 genero:
+ *                   type: string
+ *                 duracion:
+ *                   type: number
+ *                 url:
+ *                   type: string
  *       404:
  *         description: Canción no encontrada.
  */
@@ -64,6 +105,9 @@ router.get('/:id', obtenerCancionPorId);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - titulo
+ *               - artista
  *             properties:
  *               titulo:
  *                 type: string
@@ -87,6 +131,8 @@ router.get('/:id', obtenerCancionPorId);
  *     responses:
  *       201:
  *         description: Canción creada correctamente.
+ *       400:
+ *         description: Datos de entrada inválidos.
  */
 router.post('/', crearCancion);
 
@@ -160,6 +206,45 @@ router.put('/:id', actualizarCancion);
  */
 router.delete('/:id', eliminarCancion);
 
+/**
+ * @swagger
+ * /canciones/spotify/{id}:
+ *   get:
+ *     summary: Obtener detalles de una canción desde Spotify
+ *     description: Recupera información de una canción usando la API de Spotify mediante su ID de Spotify.
+ *     tags: [Canciones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la canción en Spotify.
+ *     responses:
+ *       200:
+ *         description: Datos de la canción obtenidos correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 titulo:
+ *                   type: string
+ *                 artista:
+ *                   type: string
+ *                 album:
+ *                   type: string
+ *                 duracion_ms:
+ *                   type: number
+ *                 preview_url:
+ *                   type: string
+ *       404:
+ *         description: Canción no encontrada en Spotify.
+ *       500:
+ *         description: Error al comunicarse con la API de Spotify.
+ */
 router.get('/spotify/:id', obtenerCancionSpotify);
 
 module.exports = router;

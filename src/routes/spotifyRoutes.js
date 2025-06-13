@@ -7,10 +7,19 @@ const {
 
 /**
  * @swagger
+ * tags:
+ *   name: Spotify
+ *   description: Endpoints relacionados con la integración y consumo de datos de Spotify
+ */
+
+/**
+ * @swagger
  * /spotify/playlists/{userId}:
  *   get:
  *     summary: Obtener playlists públicas de un usuario de Spotify
- *     description: Devuelve una lista de playlists públicas de Spotify asociadas al usuario indicado. Este usuario debe tener su cuenta de Spotify vinculada previamente.
+ *     description: |
+ *       Devuelve una lista de playlists públicas de Spotify asociadas al usuario indicado.
+ *       Este usuario debe tener su cuenta de Spotify vinculada previamente.
  *     tags: [Spotify]
  *     parameters:
  *       - in: path
@@ -56,7 +65,9 @@ router.get('/playlists/:userId', obtenerPlaylistsDeSpotify);
  * /spotify/recomendaciones:
  *   get:
  *     summary: Obtener recomendaciones personalizadas desde Spotify
- *     description: Devuelve una lista de canciones recomendadas usando la API de Spotify con semillas predeterminadas.
+ *     description: |
+ *       Devuelve una lista de canciones recomendadas usando la API de Spotify
+ *       con semillas predeterminadas configuradas en el backend.
  *     tags: [Spotify]
  *     responses:
  *       200:
@@ -70,12 +81,16 @@ router.get('/playlists/:userId', obtenerPlaylistsDeSpotify);
  *                 properties:
  *                   title:
  *                     type: string
+ *                     description: Título de la canción.
  *                   artist:
  *                     type: string
+ *                     description: Artista principal.
  *                   img:
  *                     type: string
+ *                     description: URL de la imagen del cover.
  *                   spotifyUri:
  *                     type: string
+ *                     description: URI de Spotify para reproducir la canción.
  *       500:
  *         description: Error al obtener recomendaciones desde la API de Spotify.
  */

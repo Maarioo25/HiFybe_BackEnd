@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const {
   obtenerPlaylists,
   crearPlaylist,
@@ -28,6 +27,21 @@ const {
  *     responses:
  *       200:
  *         description: Listado de playlists públicas obtenido correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   nombre:
+ *                     type: string
+ *                   descripcion:
+ *                     type: string
+ *                   es_publica:
+ *                     type: boolean
  */
 router.get('/', obtenerPlaylists);
 
@@ -44,6 +58,9 @@ router.get('/', obtenerPlaylists);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - nombre
+ *               - usuarioId
  *             properties:
  *               nombre:
  *                 type: string
@@ -64,7 +81,32 @@ router.get('/', obtenerPlaylists);
  */
 router.post('/', crearPlaylist);
 
-// Obtener detalle de playlist de un usuario amigo
+/**
+ * @swagger
+ * /playlists/friends/{userId}/playlists/{playlistId}:
+ *   get:
+ *     summary: Obtener detalle de playlist de un usuario amigo
+ *     description: Recupera la información de una playlist de un amigo por sus IDs.
+ *     tags: [Playlists]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario amigo.
+ *       - in: path
+ *         name: playlistId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la playlist.
+ *     responses:
+ *       200:
+ *         description: Detalle de la playlist obtenido correctamente.
+ *       404:
+ *         description: Playlist o usuario no encontrado.
+ */
 router.get('/friends/:userId/playlists/:playlistId', getPlaylistById);
 
 /**
@@ -148,6 +190,8 @@ router.delete('/:id', eliminarPlaylist);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - cancionId
  *             properties:
  *               cancionId:
  *                 type: string
