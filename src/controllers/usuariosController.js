@@ -58,7 +58,7 @@ function emitirTokenYCookie(usuario, req, res) {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
-    console.log("✅ Cookie enviada.");
+    console.log("✅ Token de Inicio de Sesión enviado.");
     return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
 }
@@ -150,7 +150,7 @@ exports.getCurrentUser = async (req, res) => {
       return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
 
-    console.log('[Usuario] Usuario encontrado:', usuario.email); // <-- LOG
+    console.log('[Usuario] Usuario encontrado:', usuario); // <-- LOG
     res.json(limpiarUsuario(usuario));
   } catch (err) {
     console.error('[Usuario] Error al obtener usuario actual:', err);
@@ -369,6 +369,8 @@ exports.spotifyLinkCallback = async (req, res) => {
     const token = req.user.spotifyAccessToken;
 
     res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${token}`);
+
+    
   } catch (err) {
     console.error('Error en spotifyLinkCallback:', err);
     res.redirect(`${process.env.FRONTEND_URL}?error=server_error`);
