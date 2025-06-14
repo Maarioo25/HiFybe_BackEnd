@@ -59,6 +59,7 @@ function emitirTokenYCookie(usuario, req, res) {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
     console.log("✅ Token de Inicio de Sesión enviado.");
+    
 
     const redireccion = `${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken}`;
     return res.redirect(redireccion);
@@ -343,7 +344,7 @@ exports.spotifyAuth = (req, res, next) => {
 exports.spotifyCallback = async (req, res) => {
   try {
     if (!req.user) {
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
+      return res.redirect(`${process.env.FRONTEND_URL}/auth?error=spotify_auth_failed`);
     }
 
     req.user.ultima_conexion = Date.now();
@@ -353,9 +354,10 @@ exports.spotifyCallback = async (req, res) => {
 
   } catch (err) {
     console.error('Error en spotifyCallback:', err);
-    return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+    return res.redirect(`${process.env.FRONTEND_URL}/auth?error=server_error`);
   }
 };
+
 
 
 exports.spotifyLinkCallback = async (req, res) => {
@@ -363,22 +365,26 @@ exports.spotifyLinkCallback = async (req, res) => {
     if (!req.user) {
       return res.redirect(`${process.env.FRONTEND_URL}?error=sin_usuario`);
     }
-    
-    if (!req.user.spotifyAccessToken) {
+
+    req.user.ultima_conexion = Date.now();
+    await req.user.save();
+
+    const sp_token = req.user.spotifyAccessToken;
+
+    if (!sp_token) {
       return res.redirect(`${process.env.FRONTEND_URL}?error=sin_token`);
     }
-    
 
-    const token = req.user.spotifyAccessToken;
+    // Redirige al frontend base con el token de Spotify
+    return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${sp_token}`);
 
-    res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${token}`);
-
-    
   } catch (err) {
     console.error('Error en spotifyLinkCallback:', err);
-    res.redirect(`${process.env.FRONTEND_URL}?error=server_error`);
+    return res.redirect(`${process.env.FRONTEND_URL}?error=server_error`);
   }
 };
+
+
 
 
 
