@@ -59,9 +59,12 @@ function emitirTokenYCookie(usuario, req, res) {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
     console.log("✅ Token de Inicio de Sesión enviado.");
-    return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
+
+    const redireccion = `${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken}`;
+    return res.redirect(redireccion);
   }
 }
+
 
 
 
