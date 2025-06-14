@@ -26,6 +26,7 @@ const app = express();
 
   app.use(cors({
     origin: function (origin, callback) {
+      console.log('🌐 Petición desde origin:', origin);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, origin); // ✅ devuelve el origen exacto
       } else {
@@ -95,8 +96,7 @@ passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-  passReqToCallback: true,
-  skipUserProfile: true
+  passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   console.log('🎯 Entrando en strategy normal de Spotify');
   if (!accessToken) {
@@ -157,7 +157,7 @@ passport.use(new SpotifyStrategy({
     });
     
 
-    console.log('✅ Usuario Spotify autenticado o vinculado:', usuario.email);
+    console.log('✅ Usuario autenticado o vinculado:', usuario.email);
 
     done(null, usuario);
 
