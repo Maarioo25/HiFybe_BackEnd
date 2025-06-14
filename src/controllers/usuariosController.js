@@ -44,24 +44,28 @@ async function refrescarToken(refreshToken) {
 
 function emitirTokenYCookie(usuario, req, res) {
   const isMobile = req.query?.mobile === "true" || req.query?.state === "mobile" || req.body?.mobile === true;
+  const desdeSpotify = req.originalUrl.includes('/usuarios/spotify/callback');
 
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   if (isMobile) {
     return res.redirect(`hifybe-movil://spotify-auth-callback?token=${token}`);
+  }
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'None',
+    secure: true,
+    domain: '.mariobueno.info',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+
+  if (desdeSpotify) {
+    console.log("✅ Token de sesión enviado tras login con Spotify.");
+    return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   } else {
-    res.cookie('token', token, {
-      httpOnly: true,
-      sameSite: 'None',
-      secure: true,
-      domain: '.mariobueno.info',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    console.log("✅ Token de Inicio de Sesión enviado (manual).");
-
-    // ✅ Aquí devolvemos JSON en vez de redirección
+    console.log("✅ Token de sesión enviado tras login manual.");
     return res.json({
       mensaje: 'Inicio de sesión correcto',
       usuario,
@@ -69,6 +73,7 @@ function emitirTokenYCookie(usuario, req, res) {
     });
   }
 }
+
 
 
 
