@@ -98,6 +98,11 @@ passport.use(new SpotifyStrategy({
   passReqToCallback: true,
   skipUserProfile: true
 }, async (req, accessToken, refreshToken, profile, done) => {
+  console.log('🎯 Entrando en strategy normal de Spotify');
+  if (!accessToken) {
+    console.error('[Spotify] No se recibió accessToken');
+    return done(new Error('No se recibió accessToken'), null);
+  }
   try {
     const User = require('./src/models/usuario');
 
@@ -145,6 +150,12 @@ passport.use(new SpotifyStrategy({
     usuario.spotifyAccessToken = accessToken;
     usuario.spotifyRefreshToken = refreshToken;
     await usuario.save();
+
+    console.log('🧪 Tokens guardados:', {
+      access: usuario.spotifyAccessToken,
+      refresh: usuario.spotifyRefreshToken
+    });
+    
 
     console.log('✅ Usuario Spotify autenticado o vinculado:', usuario.email);
 
