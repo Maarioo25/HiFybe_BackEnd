@@ -63,7 +63,7 @@ function emitirTokenYCookie(usuario, req, res) {
 
   if (desdeSpotify) {
     console.log("✅ Token de sesión enviado tras login con Spotify.");
-    return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
+    return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken ?? ''}`);
   } else {
     console.log("✅ Token de sesión enviado tras login manual.");
     return res.json({
