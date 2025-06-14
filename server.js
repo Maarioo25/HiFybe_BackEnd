@@ -101,7 +101,7 @@ passport.use(new SpotifyStrategy({
   try {
     const User = require('./src/models/usuario');
 
-    // 👇 Llamada manual al perfil
+    // 🔍 Obtener perfil manualmente
     const response = await fetch('https://api.spotify.com/v1/me', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
@@ -117,27 +117,36 @@ passport.use(new SpotifyStrategy({
 
     const email = userData.email ?? `${userData.id}@spotify.local`;
 
-    let usuario = await User.findOne({ email });
+    let usuario;
 
-    if (!usuario) {
-      usuario = new User({
-        spotifyId: userData.id,
-        email: email,
-        nombre: userData.display_name || 'Usuario',
-        apellidos: 'Desconocido',
-        password: await bcrypt.hash(Math.random().toString(36), 10),
-        foto_perfil: userData.images?.[0]?.url || '',
-        auth_proveedor: 'spotify'
-      });
+    // ✅ Si ya hay usuario logueado, vinculamos
+    if (req.user) {
+      usuario = await User.findById(req.user._id);
+    } else {
+      // ❓ Si no está logueado, buscamos por email
+      usuario = await User.findOne({ email });
+
+      // 🆕 Si no existe, lo creamos
+      if (!usuario) {
+        usuario = new User({
+          spotifyId: userData.id,
+          email: email,
+          nombre: userData.display_name || 'Usuario',
+          apellidos: 'Desconocido',
+          password: await bcrypt.hash(Math.random().toString(36), 10),
+          foto_perfil: userData.images?.[0]?.url || '',
+          auth_proveedor: 'spotify'
+        });
+      }
     }
 
-    // Siempre guardar/actualizar tokens y spotifyId
+    // 📝 Guardar tokens y spotifyId
     usuario.spotifyId = userData.id;
     usuario.spotifyAccessToken = accessToken;
     usuario.spotifyRefreshToken = refreshToken;
     await usuario.save();
 
-    console.log('✅ Usuario Spotify autenticado:', usuario.email);
+    console.log('✅ Usuario Spotify autenticado o vinculado:', usuario.email);
 
     done(null, usuario);
 
@@ -146,6 +155,7 @@ passport.use(new SpotifyStrategy({
     done(err, null);
   }
 }));
+
 
 passport.use('spotify-link', new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
