@@ -326,8 +326,6 @@ exports.googleAuth = (req, res, next) => {
   })(req, res, next);
 };
 
-
-
 exports.googleCallback = async (req, res) => {
   if (!req.user) {
     return res.redirect(`${process.env.FRONTEND_URL}/auth?error=google_auth_failed`);
