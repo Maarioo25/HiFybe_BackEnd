@@ -40,10 +40,6 @@ exports.obtenerAmistades = async (req, res) => {
 };
 
 exports.enviarSolicitudAmistad = async (req, res) => {
-  const { de_usuario_id, para_usuario_id } = req.body;
-  console.log("📥 [POST /amistades/solicitudes]");
-  console.log("  - Emisor ID:", de_usuario_id);
-  console.log("  - Receptor ID:", para_usuario_id);
 
   if (!de_usuario_id || !para_usuario_id) {
     return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });

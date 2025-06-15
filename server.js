@@ -29,7 +29,7 @@ const app = express();
   // Middleware de CORS
   app.use(cors({
     origin: function (origin, callback) {
-      console.log('🌐 Petición desde origin:', origin);
+      console.log('Petición desde origin:', origin);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, origin);
       } else {
