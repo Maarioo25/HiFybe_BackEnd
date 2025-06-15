@@ -45,6 +45,7 @@ async function refrescarToken(refreshToken) {
 function emitirTokenYCookie(usuario, req, res) {
   const isMobile = req.query?.mobile === "true" || req.query?.state === "mobile" || req.body?.mobile === true;
   const desdeSpotify = req.originalUrl.includes('/usuarios/spotify/callback');
+  const desdeGoogle = req.originalUrl.includes('/usuarios/google/callback');
 
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -64,6 +65,8 @@ function emitirTokenYCookie(usuario, req, res) {
   if (desdeSpotify) {
     console.log("✅ Token de sesión enviado tras login con Spotify.");
     return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken ?? ''}`);
+  } else if (desdeGoogle) {
+    return res.redirect(`${process.env.FRONTEND_URL}?google_token=${usuario.googleId ?? ''}`);
   } else {
     console.log("✅ Token de sesión enviado tras login manual.");
     return res.json({
