@@ -40,6 +40,7 @@ exports.obtenerAmistades = async (req, res) => {
 };
 
 exports.enviarSolicitudAmistad = async (req, res) => {
+  const { de_usuario_id, para_usuario_id } = req.body;
 
   if (!de_usuario_id || !para_usuario_id) {
     return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
@@ -60,6 +61,7 @@ exports.enviarSolicitudAmistad = async (req, res) => {
   const solicitud = await SolicitudAmistad.create({ de_usuario_id, para_usuario_id });
   res.json({ mensaje: 'Solicitud creada', solicitud });
 };
+
 
 
 exports.responderSolicitudAmistad = async (req, res) => {
