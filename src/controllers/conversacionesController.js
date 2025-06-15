@@ -1,7 +1,7 @@
 const Conversacion = require('../models/conversacion');
 const Mensaje = require('../models/mensaje');
-const Amistad = require('../models/amistad'); // ← añadido
-const Usuario = require('../models/usuario'); // ← añadido
+const Amistad = require('../models/amistad');
+const Usuario = require('../models/usuario');
 
 exports.crearConversacion = async (req, res) => {
   try {
@@ -10,8 +10,6 @@ exports.crearConversacion = async (req, res) => {
     if (!id1 || !id2 || id1 === id2) {
       return res.status(400).json({ error: 'Participantes inválidos' });
     }
-
-    // Verificar si son amigos
     const amistad = await Amistad.findOne({
       $or: [
         { usuario_id_1: id1, usuario_id_2: id2 },
@@ -23,8 +21,6 @@ exports.crearConversacion = async (req, res) => {
     if (!amistad) {
       return res.status(403).json({ error: 'Los usuarios no son amigos' });
     }
-
-    // Evitar duplicados: verificar si ya existe conversación entre ambos
     let conversacion = await Conversacion.findOne({
       $or: [
         { usuario1_id: id1, usuario2_id: id2 },
@@ -67,7 +63,7 @@ exports.obtenerMensajesConversacion = async (req, res) => {
   try {
     const mensajes = await Mensaje.find({ conversacion_id: req.params.id })
       .sort({ fecha_envio: 1 })
-      .populate('emisor_id', 'nombre foto_perfil'); // ← solo esto
+      .populate('emisor_id', 'nombre foto_perfil');
 
     res.json(mensajes);
   } catch (err) {
@@ -79,7 +75,7 @@ exports.obtenerMensajesConversacion = async (req, res) => {
 };
 
 
-// ===================== MENSajes ===================== //
+// ===================== MENSAJES ===================== //
 
 exports.enviarMensaje = async (req, res) => {
   try {

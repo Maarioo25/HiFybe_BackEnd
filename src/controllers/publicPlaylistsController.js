@@ -5,20 +5,18 @@ exports.getPublicPlaylistByUserAndId = async (req, res) => {
   const { userId, playlistId } = req.params;
 
   try {
-    // 1. Buscar el usuario en tu base de datos
     const usuario = await User.findById(userId);
     if (!usuario || !usuario.spotifyAccessToken) {
       return res.status(404).json({ mensaje: 'Usuario no vinculado a Spotify o no encontrado' });
     }
 
-    // 2. Llamar a la API de Spotify usando su token
     const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
       headers: { Authorization: `Bearer ${usuario.spotifyAccessToken}` }
     });
 
     if (!response.ok) {
       const texto = await response.text();
-      console.error('❌ Spotify error:', response.status, texto);
+      console.error('Spotify error:', response.status, texto);
       return res.status(response.status).json({ mensaje: 'Error al cargar playlist de Spotify' });
     }
 
@@ -42,7 +40,7 @@ exports.getPublicPlaylistByUserAndId = async (req, res) => {
       })
     });
   } catch (err) {
-    console.error('❌ Error en getPublicPlaylistByUserAndId:', err);
+    console.error('Error en getPublicPlaylistByUserAndId:', err);
     res.status(500).json({ mensaje: 'Error en el servidor al obtener la playlist de Spotify' });
   }
 };

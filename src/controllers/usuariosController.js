@@ -77,20 +77,12 @@ function emitirTokenYCookie(usuario, req, res) {
   }
 }
 
-
-
-
-
-
-
 // ===================== REGISTRO ===================== //
 
 exports.registrarUsuario = async (req, res) => {
   try {
-    // Ahora aceptamos foto_perfil opcionalmente en el body
     const { nombre, apellidos, email, password, foto_perfil } = req.body;
 
-    // Verificar si ya existe el usuario por correo
     const usuarioExistePorCorreo = await Usuario.findOne({ email });
     const usuarioEstaRegistradoConGoogle = await Usuario.findOne({ email, auth_proveedor: 'google' });
     const usuarioEstaRegistradoConSpotify = await Usuario.findOne({ email, auth_proveedor: 'spotify' });
@@ -104,16 +96,13 @@ exports.registrarUsuario = async (req, res) => {
     if (usuarioExistePorCorreo)
       return res.status(403).json({ mensaje: 'Esta dirección de correo ya está registrada, inicia sesión.' });
 
-    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Si no se proporcionó foto_perfil (o viene vacío), asignamos DEFAULT_AVATAR
     let finalAvatarUrl = foto_perfil;
     if (!foto_perfil || foto_perfil.trim() === "") {
-      finalAvatarUrl = "/avatars/default.jpg"; // "/avatars/default.jpg"
+      finalAvatarUrl = "/avatars/default.jpg";
     }
 
-    // Crear el nuevo usuario, incluyendo foto_perfil (sea la proporcionada o la por defecto)
     const usuario = await Usuario.create({
       nombre,
       apellidos,
@@ -122,7 +111,6 @@ exports.registrarUsuario = async (req, res) => {
       foto_perfil: finalAvatarUrl
     });
 
-    // Devolvemos el usuario sin campos sensibles
     res.status(201).json({
       mensaje: 'Usuario registrado exitosamente.',
       usuario: limpiarUsuario(usuario)
@@ -289,7 +277,7 @@ exports.obtenerUsuariosCercanos = async (req, res) => {
 
     res.status(200).json(usuarios);
   } catch (error) {
-    console.error("❌ Error en obtenerUsuariosCercanos:", error);
+    console.error("Error en obtenerUsuariosCercanos:", error);
     res.status(500).json({ error: 'Error buscando usuarios cercanos' });
   }
 };
@@ -312,10 +300,6 @@ exports.ocultarUbicacion = async (req, res) => {
     res.status(500).json({ mensaje: "Error interno al ocultar ubicación" });
   }
 };
-
-
-
-
 
 // ===================== GOOGLE OAUTH ===================== //
 
@@ -419,11 +403,6 @@ exports.spotifyLinkCallback = async (req, res) => {
 };
 
 
-
-
-
-
-
 exports.spotifyAuthFailureHandler = (req, res) => {
   console.error('Autenticación con Spotify fallida.', req.query.error);
   res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
@@ -439,10 +418,9 @@ exports.logoutUser = (req, res) => {
     domain: '.mariobueno.info',
     path: '/'
   });
-  console.log("✅ Cookie enviada.");
+  console.log("Cookie enviada.");
   res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
 };
-
 
 
 //------------Ultima canción---------------//
@@ -606,6 +584,3 @@ exports.actualizarPreferenciasUsuario = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al actualizar preferencias.' });
   }
 };
-
-
-

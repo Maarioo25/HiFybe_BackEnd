@@ -2,6 +2,7 @@ const Amistad = require('../models/amistad');
 const SolicitudAmistad = require('../models/solicitudAmistad');
 const Usuario = require('../models/usuario');
 
+// ===================== AMISTADES ===================== //
 exports.obtenerAmistades = async (req, res) => {
   const userId = req.params.userId;
   const amistades = await Amistad
@@ -71,7 +72,6 @@ exports.responderSolicitudAmistad = async (req, res) => {
   }
 
   try {
-    // Actualizamos el estado de la solicitud
     const solicitud = await SolicitudAmistad.findByIdAndUpdate(
       solicitudId,
       { estado },
@@ -81,8 +81,6 @@ exports.responderSolicitudAmistad = async (req, res) => {
     if (!solicitud) {
       return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
     }
-
-    // Si fue aceptada, creamos la amistad
     if (estado === 'aceptada') {
       await Amistad.create({
         usuario_id_1: solicitud.de_usuario_id,

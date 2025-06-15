@@ -4,7 +4,6 @@ const fs = require('fs');
 
 const uploadPath = path.join(__dirname, '../../public/uploads');
 
-// Asegúrate de que la carpeta exista
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
 }

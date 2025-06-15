@@ -18,7 +18,6 @@ exports.crearCancion = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    // Evitar duplicados
     let existente = await Cancion.findOne({ uri });
     if (existente) return res.json(existente);
 

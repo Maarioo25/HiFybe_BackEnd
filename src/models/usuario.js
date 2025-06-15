@@ -14,12 +14,9 @@ const usuarioSchema = new mongoose.Schema({
   generos_favoritos:  [{ type: String }],
   redes:               { instagram: { type: String, default: '' }, twitter: { type: String, default: '' }, tiktok: { type: String, default: '' }},
   tema_oscuro:         { type: Boolean, default: false },
-
-  // 🎵 Campos para Spotify
   spotifyId:           { type: String,  unique: true, sparse: true, trim: true },
   spotifyAccessToken:  { type: String,  default: '' },
   spotifyRefreshToken: { type: String,  default: '' },
-
   biografia:           { type: String,  default: '' },
   ubicacion: {
     type: {
@@ -42,7 +39,6 @@ const usuarioSchema = new mongoose.Schema({
   collation: { locale: 'es', strength: 2 }
 });
 
-// 🗺️ Índice de geolocalización
 usuarioSchema.index({ ubicacion: '2dsphere' });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);

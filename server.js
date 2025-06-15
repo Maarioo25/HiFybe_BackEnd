@@ -14,9 +14,10 @@ const swaggerJsdoc = require('swagger-jsdoc');
 
 dotenv.config();
 
+// Configuración de la conexión a MongoDB
 const app = express();
 
-  // ✅ CORS configurado correctamente
+  // Configuración de CORS
   const allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
@@ -24,11 +25,12 @@ const app = express();
     'https://api.mariobueno.info'
   ];
 
+  // Middleware de CORS
   app.use(cors({
     origin: function (origin, callback) {
       console.log('🌐 Petición desde origin:', origin);
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, origin); // ✅ devuelve el origen exacto
+        callback(null, origin);
       } else {
         callback(new Error('No permitido por CORS'));
       }
@@ -39,6 +41,7 @@ const app = express();
     exposedHeaders: ['Authorization', 'Set-Cookie']
   }));
 
+  // Middleware de Express
   app.use(express.json());
   app.use(cookieParser());
   app.use(passport.initialize());
@@ -46,6 +49,7 @@ const app = express();
   app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 
+// Configuración de Passport para Google
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -93,6 +97,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 const fetch = require('node-fetch');
 
+// Configuración de Passport para Spotify
 passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -107,7 +112,6 @@ passport.use(new SpotifyStrategy({
   try {
     const User = require('./src/models/usuario');
 
-    // 🔍 Obtener perfil manualmente
     const response = await fetch('https://api.spotify.com/v1/me', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
@@ -125,14 +129,11 @@ passport.use(new SpotifyStrategy({
 
     let usuario;
 
-    // ✅ Si ya hay usuario logueado, vinculamos
     if (req.user) {
       usuario = await User.findById(req.user._id);
     } else {
-      // ❓ Si no está logueado, buscamos por email
       usuario = await User.findOne({ email });
 
-      // 🆕 Si no existe, lo creamos
       if (!usuario) {
         usuario = new User({
           spotifyId: userData.id,
@@ -146,19 +147,18 @@ passport.use(new SpotifyStrategy({
       }
     }
 
-    // 📝 Guardar tokens y spotifyId
     usuario.spotifyId = userData.id;
     usuario.spotifyAccessToken = accessToken;
     usuario.spotifyRefreshToken = refreshToken;
     await usuario.save();
 
-    console.log('🧪 Tokens guardados:', {
+    console.log('Tokens guardados:', {
       access: usuario.spotifyAccessToken,
       refresh: usuario.spotifyRefreshToken
     });
     
 
-    console.log('✅ Usuario autenticado o vinculado:', usuario.email);
+    console.log('Usuario autenticado o vinculado:', usuario.email);
 
     done(null, usuario);
 
@@ -178,7 +178,6 @@ passport.use('spotify-link', new SpotifyStrategy({
   try {
     const User = require('./src/models/usuario');
 
-    // Extraer el token JWT de la cookie de forma segura
     let userId;
     try {
       const token = req.cookies?.token;
@@ -191,17 +190,14 @@ passport.use('spotify-link', new SpotifyStrategy({
       return done(new Error('Token JWT inválido'), null);
     }
 
-    // Buscar usuario actual
     const user = await User.findById(userId);
     if (!user) return done(new Error('Usuario no encontrado'), null);
 
-    // Verificar que el spotifyId no está ya en uso por otro usuario
     const existente = await User.findOne({ spotifyId: profile.id });
     if (existente && existente._id.toString() !== user._id.toString()) {
       return done(new Error('Esta cuenta de Spotify ya está vinculada a otro usuario'), null);
     }
 
-    // Asignar si es seguro
     user.spotifyId = profile.id;
     user.spotifyAccessToken = accessToken;
     user.spotifyRefreshToken = refreshToken;
@@ -216,9 +212,7 @@ passport.use('spotify-link', new SpotifyStrategy({
   }
 }));
 
-
-
-
+  //Swagger setup
   const swaggerOptions = {
     swaggerDefinition: {
       openapi: '3.0.0',
@@ -232,14 +226,15 @@ passport.use('spotify-link', new SpotifyStrategy({
     apis: ['./src/routes/*.js']
   };
 
+
   const swaggerDocs = swaggerJsdoc(swaggerOptions);
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-  // Rutas principales
   app.get('/', (req, res) => {
-    res.send('API HiFybe activa 🚀');
+    res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
   });
 
+  // Middleware de autenticación
   app.use('/usuarios', require('./src/routes/usuariosRoutes'));
   app.use('/canciones', require('./src/routes/cancionesRoutes'));
   app.use('/playlists', require('./src/routes/playlistsRoutes'));
@@ -250,8 +245,7 @@ passport.use('spotify-link', new SpotifyStrategy({
   app.use('/spotify', require('./src/routes/spotifyRoutes'))
   app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
 
-
-  // Conexión a Mongo
+// Conexión a MongoDB y arranque del servidor
   mongoose.connect(process.env.MONGO_URL)
     .then(() => {
       const PORT = process.env.PORT || 5000;
