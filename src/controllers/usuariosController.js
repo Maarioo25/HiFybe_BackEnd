@@ -265,23 +265,32 @@ exports.actualizarUbicacion = async (req, res) => {
 
 exports.obtenerUsuariosCercanos = async (req, res) => {
   try {
-    const { latitude, longitude, radio = 5000 } = req.query; // radio en km
+    const { latitude, longitude, radio = 5000 } = req.query;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitud y longitud requeridas' });
+    }
 
     const usuarios = await Usuario.find({
+      compartir_ubicacion: true,
       ubicacion: {
         $near: {
-          $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
-          $maxDistance: radio * 1000 // metros
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          },
+          $maxDistance: radio * 1000
         }
       }
     }).select('nombre apellidos foto_perfil ubicacion');
 
     res.status(200).json(usuarios);
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error en obtenerUsuariosCercanos:", error);
     res.status(500).json({ error: 'Error buscando usuarios cercanos' });
   }
 };
+
 
 exports.ocultarUbicacion = async (req, res) => {
   try {
