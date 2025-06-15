@@ -231,7 +231,7 @@ exports.eliminarUsuario = async (req, res) => {
 
 exports.actualizarUbicacion = async (req, res) => {
     console.log("📥 Body recibido en /ubicacion:", req.body);
-    console.log("🔐 Usuario autenticado:", req.user?._id);
+    console.log("🔐 Usuario autenticado:", req.user?.id);
   
     const { latitude, longitude } = req.body;
   
@@ -239,9 +239,9 @@ exports.actualizarUbicacion = async (req, res) => {
       console.warn("❗ Coordenadas inválidas:", { latitude, longitude });
       return res.status(400).json({ error: 'Latitud y longitud requeridas' });
     }
-  try {
-    const { latitude, longitude } = req.body;
-    const userId = req.user._id;
+    try {
+        const { latitude, longitude } = req.body;
+        const userId = req.user.id;
 
     if (!latitude || !longitude) {
       return res.status(400).json({ error: 'Latitud y longitud requeridas' });
