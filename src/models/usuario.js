@@ -21,8 +21,6 @@ const usuarioSchema = new mongoose.Schema({
   spotifyRefreshToken: { type: String,  default: '' },
 
   biografia:           { type: String,  default: '' },
-  ubicacion_lat:       { type: Number,  default: null },
-  ubicacion_lon:       { type: Number,  default: null },
   ubicacion: {
     type: {
       type: String,

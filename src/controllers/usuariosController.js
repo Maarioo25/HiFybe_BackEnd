@@ -248,8 +248,6 @@ exports.actualizarUbicacion = async (req, res) => {
     }
 
     await Usuario.findByIdAndUpdate(userId, {
-      ubicacion_lat: latitude,
-      ubicacion_lon: longitude,
       compartir_ubicacion: true,
       ubicacion: {
         type: 'Point',
