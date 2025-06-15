@@ -22,7 +22,8 @@ const app = express();
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'https://mariobueno.info',
-    'https://api.mariobueno.info'
+    'https://api.mariobueno.info',
+    undefined
   ];
 
   // Middleware de CORS
