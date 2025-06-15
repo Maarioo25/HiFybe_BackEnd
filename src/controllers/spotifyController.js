@@ -40,12 +40,14 @@ exports.obtenerPlaylistsDeSpotify = async (req, res) => {
     );
 
     const playlists = response.data.items.map((p) => ({
-      id: p.id,
-      nombre: p.name,
-      imagen: p.images[0]?.url || '',
-      canciones: p.tracks.total,
+      id: p.id || '',
+      nombre: p.name || 'Nombre desconocido',
+      imagen: (p.images && Array.isArray(p.images) && p.images.length > 0) ? p.images[0].url : 'default_image_url',
+      canciones: p.tracks?.total || 0,
       duracion: '---',
     }));
+    
+    
 
     res.json(playlists);
   } catch (error) {
@@ -74,12 +76,13 @@ exports.obtenerDetallePlaylistDeSpotify = async (req, res) => {
 
     const p = response.data;
     const detalle = {
-      id: p.id,
-      nombre: p.name,
-      descripcion: p.description || '',
-      imagen: p.images[0]?.url || '',
-      canciones: p.tracks.total,
+      id: p.id || '',
+      nombre: p.name || 'Nombre desconocido',
+      descripcion: p.description || 'Sin descripción',
+      imagen: (p.images && Array.isArray(p.images) && p.images.length > 0) ? p.images[0].url : 'default_image_url',
+      canciones: p.tracks?.total || 0,
     };
+    
 
     res.json(detalle);
   } catch (error) {
