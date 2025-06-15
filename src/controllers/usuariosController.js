@@ -285,23 +285,22 @@ exports.obtenerUsuariosCercanos = async (req, res) => {
 
 exports.ocultarUbicacion = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     await Usuario.findByIdAndUpdate(userId, {
       compartir_ubicacion: false,
       $unset: {
-        ubicacion: "",
-        ubicacion_lat: "",
-        ubicacion_lon: ""
+        ubicacion: ""
       }
     });
 
-    res.status(200).json({ mensaje: "Ubicación eliminada correctamente" });
+    res.status(200).json({ mensaje: "Ubicación ocultada correctamente" });
   } catch (error) {
     console.error("Error al ocultar ubicación:", error);
     res.status(500).json({ mensaje: "Error interno al ocultar ubicación" });
   }
 };
+
 
 
 
