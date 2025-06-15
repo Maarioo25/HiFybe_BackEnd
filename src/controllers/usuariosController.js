@@ -316,30 +316,38 @@ exports.ocultarUbicacion = async (req, res) => {
 
 // ===================== GOOGLE OAUTH ===================== //
 
-exports.googleAuth = passport.authenticate('google', {
-  scope: ['profile', 'email'],
-  prompt: 'select_account',
-  showDialog: true
-});
+exports.googleAuth = (req, res, next) => {
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    prompt: 'select_account',
+    session: false,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    state: req.query.mobile === "true" ? "mobile" : "web"
+  })(req, res, next);
+};
+
+
 
 exports.googleCallback = async (req, res) => {
-  if (req.user) {
-    try {
-      req.user.ultima_conexion = Date.now();
-      await req.user.save();
-      emitirTokenYCookie(req.user, res);
-      res.redirect(`${process.env.FRONTEND_URL}`);
-    } catch (err) {
-      console.error('ERROR CALLBACK:', err);
-      res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
-    }
-  } else {
-    res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
+  if (!req.user) {
+    return res.redirect(`${process.env.FRONTEND_URL}/auth?error=google_auth_failed`);
+  }
+
+  try {
+    req.user.ultima_conexion = Date.now();
+    await req.user.save();
+    return emitirTokenYCookie(req.user, req, res);
+
+  } catch (err) {
+    console.error('ERROR CALLBACK:', err);
+    return res.redirect(`${process.env.FRONTEND_URL}/auth?error=server_error`);
   }
 };
 
+
+
 exports.googleAuthFailureHandler = (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
+  res.redirect(`${process.env.FRONTEND_URL}/auth?error=google_auth_failed`);
 };
 
 // ===================== SPOTIFY OAUTH ===================== //
