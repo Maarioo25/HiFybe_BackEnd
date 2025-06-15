@@ -50,7 +50,11 @@ function emitirTokenYCookie(usuario, req, res) {
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   if (isMobile) {
-    return res.redirect(`hifybe-movil://spotify-auth-callback?token=${token}`);
+    let redirUrl = `hifybe-movil://spotify-auth-callback?token=${token}`;
+    if (desdeSpotify && usuario.spotifyAccessToken) {
+      redirUrl += `&spotify_token=${usuario.spotifyAccessToken}`;
+    }
+    return res.redirect(redirUrl);
   }
 
   res.cookie('token', token, {
@@ -65,17 +69,21 @@ function emitirTokenYCookie(usuario, req, res) {
   if (desdeSpotify) {
     console.log("✅ Token de sesión enviado tras login con Spotify.");
     return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken ?? ''}`);
-  } else if (desdeGoogle) {
-    return res.redirect(`${process.env.FRONTEND_URL}?google_token=${usuario.googleId ?? ''}`);
-  } else {
-    console.log("✅ Token de sesión enviado tras login manual.");
-    return res.json({
-      mensaje: 'Inicio de sesión correcto',
-      usuario,
-      spotifyAccessToken: usuario.spotifyAccessToken ?? null
-    });
   }
+
+  if (desdeGoogle) {
+    console.log("✅ Token de sesión enviado tras login con Google.");
+    return res.redirect(`${process.env.FRONTEND_URL}?google_token=${usuario.googleId ?? ''}`);
+  }
+
+  console.log("✅ Token de sesión enviado tras login manual.");
+  return res.json({
+    mensaje: 'Inicio de sesión correcto',
+    usuario,
+    spotifyAccessToken: usuario.spotifyAccessToken ?? null
+  });
 }
+
 
 // ===================== REGISTRO ===================== //
 
