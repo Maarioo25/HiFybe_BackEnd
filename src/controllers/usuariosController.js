@@ -111,10 +111,23 @@ exports.registrarUsuario = async (req, res) => {
       foto_perfil: finalAvatarUrl
     });
 
-    res.status(201).json({
+    const isMobile = req.query?.mobile === "true" || req.body?.mobile === true;
+
+    if (isMobile) {
+      const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      return res.status(200).json({
+        mensaje: 'Usuario registrado exitosamente.',
+        token,
+        usuario: limpiarUsuario(usuario)
+      });
+    }
+
+    // Flujo web (mantenemos el 201 o 202 si quieres)
+    res.status(202).json({
       mensaje: 'Usuario registrado exitosamente.',
       usuario: limpiarUsuario(usuario)
     });
+
   } catch (err) {
     console.error('Error al registrar usuario:', err);
     res.status(500).json({ mensaje: 'Error al registrar usuario.' });
