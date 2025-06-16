@@ -1,4 +1,3 @@
-// src/models/usuario.js
 const mongoose = require('mongoose');
 
 const usuarioSchema = new mongoose.Schema({

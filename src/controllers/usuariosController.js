@@ -42,12 +42,23 @@ async function refrescarToken(refreshToken) {
 }
 
 
-function emitirTokenYCookie(usuario, req, res) {
+async function emitirTokenYCookie(usuario, req, res) {
   const isMobile = req.query?.mobile === "true" || req.query?.state === "mobile" || req.body?.mobile === true;
   const desdeSpotify = req.originalUrl.includes('/usuarios/spotify/callback');
   const desdeGoogle = req.originalUrl.includes('/usuarios/google/callback');
 
   const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+  if (desdeSpotify && usuario.spotifyAccessToken) {
+    try {
+      await Usuario.findByIdAndUpdate(usuario._id, {
+        spotifyAccessToken: usuario.spotifyAccessToken,
+        ultima_conexion: Date.now()
+      });
+    } catch (err) {
+      console.error("Error guardando Spotify token en la BD:", err);
+    }
+  }
 
   if (isMobile) {
     let redirUrl = `hifybe-movil://spotify-auth-callback?token=${token}`;
@@ -67,16 +78,16 @@ function emitirTokenYCookie(usuario, req, res) {
   });
 
   if (desdeSpotify) {
-    console.log("✅ Token de sesión enviado tras login con Spotify.");
+    console.log("Token de sesión enviado tras login con Spotify.");
     return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken ?? ''}`);
   }
 
   if (desdeGoogle) {
-    console.log("✅ Token de sesión enviado tras login con Google.");
+    console.log("Token de sesión enviado tras login con Google.");
     return res.redirect(`${process.env.FRONTEND_URL}?google_token=${usuario.googleId ?? ''}`);
   }
 
-  console.log("✅ Token de sesión enviado tras login manual.");
+  console.log("Token de sesión enviado tras login manual.");
   return res.json({
     mensaje: 'Inicio de sesión correcto',
     usuario,
@@ -85,27 +96,24 @@ function emitirTokenYCookie(usuario, req, res) {
 }
 
 
+
 // ===================== REGISTRO ===================== //
 
 exports.registrarUsuario = async (req, res) => {
   try {
     const { nombre, apellidos, email, password, foto_perfil } = req.body;
-
     const usuarioExistePorCorreo = await Usuario.findOne({ email });
     const usuarioEstaRegistradoConGoogle = await Usuario.findOne({ email, auth_proveedor: 'google' });
     const usuarioEstaRegistradoConSpotify = await Usuario.findOne({ email, auth_proveedor: 'spotify' });
 
     if (usuarioEstaRegistradoConGoogle)
       return res.status(403).json({ mensaje: 'Inicia sesión a través de Google.' });
-
     if (usuarioEstaRegistradoConSpotify)
       return res.status(403).json({ mensaje: 'Inicia sesión a través de Spotify.' });
-
     if (usuarioExistePorCorreo)
       return res.status(403).json({ mensaje: 'Esta dirección de correo ya está registrada, inicia sesión.' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     let finalAvatarUrl = foto_perfil;
     if (!foto_perfil || foto_perfil.trim() === "") {
       finalAvatarUrl = "/avatars/default.jpg";
@@ -120,22 +128,17 @@ exports.registrarUsuario = async (req, res) => {
     });
 
     const isMobile = req.query?.mobile === "true" || req.body?.mobile === true;
-
     if (isMobile) {
       const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
       return res.status(200).json({
         mensaje: 'Usuario registrado exitosamente.',
         token,
         usuario: limpiarUsuario(usuario)
-      });
-    }
-
-    // Flujo web (mantenemos el 201 o 202 si quieres)
+      });}
     res.status(202).json({
       mensaje: 'Usuario registrado exitosamente.',
       usuario: limpiarUsuario(usuario)
     });
-
   } catch (err) {
     console.error('Error al registrar usuario:', err);
     res.status(500).json({ mensaje: 'Error al registrar usuario.' });
@@ -242,13 +245,13 @@ exports.eliminarUsuario = async (req, res) => {
 // ===================== GEOLOCALIZACIÓN ===================== //
 
 exports.actualizarUbicacion = async (req, res) => {
-    console.log("📥 Body recibido en /ubicacion:", req.body);
-    console.log("🔐 Usuario autenticado:", req.user?.id);
+    console.log("Body recibido en /ubicacion:", req.body);
+    console.log("Usuario autenticado:", req.user?.id);
   
     const { latitude, longitude } = req.body;
   
     if (typeof latitude !== "number" || typeof longitude !== "number") {
-      console.warn("❗ Coordenadas inválidas:", { latitude, longitude });
+      console.warn("Coordenadas inválidas:", { latitude, longitude });
       return res.status(400).json({ error: 'Latitud y longitud requeridas' });
     }
     try {
@@ -414,7 +417,6 @@ exports.spotifyLinkCallback = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}?error=sin_token`);
     }
 
-    // Redirige al frontend base con el token de Spotify
     return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${sp_token}`);
 
   } catch (err) {
