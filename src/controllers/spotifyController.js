@@ -65,6 +65,7 @@ exports.obtenerDetallePlaylistDeSpotify = async (req, res) => {
   try {
     const { playlistId } = req.params;
     const token = await getSpotifyAppToken();
+
     const response = await axios.get(
       `https://api.spotify.com/v1/playlists/${playlistId}`,
       {
@@ -79,25 +80,32 @@ exports.obtenerDetallePlaylistDeSpotify = async (req, res) => {
       id: p.id || '',
       nombre: p.name || 'Nombre desconocido',
       descripcion: p.description || 'Sin descripción',
-      imagen: (p.images && Array.isArray(p.images) && p.images.length > 0) ? p.images[0].url : 'default_image_url',
+      imagen: (p.images?.[0]?.url) || 'default_image_url',
       canciones: p.tracks?.total || 0,
     };
-    
 
-    res.json(detalle);
+    return res.json(detalle);
   } catch (error) {
-    console.error(
-      'Error al obtener detalles de playlist de Spotify:',
-      error.response?.data || error.message
-    );
-    if (error.response?.status === 400 || error.response?.status === 404) {
-      return res.status(400).json({ mensaje: 'ID de playlist inválido' });
+    const status = error.response?.status;
+    const msg = error.response?.data || error.message;
+
+    console.error('❌ Error al obtener detalles de playlist de Spotify:', {
+      status,
+      data: msg,
+      url: error.config?.url,
+    });
+
+    if (status === 400 || status === 404) {
+      return res.status(404).json({ mensaje: 'La playlist no está disponible o es privada' });
     }
-    res
-      .status(500)
-      .json({ mensaje: 'Error al obtener detalles de playlist de Spotify' });
+
+    return res.status(500).json({
+      mensaje: 'Error al obtener detalles de playlist de Spotify',
+      error: msg,
+    });
   }
 };
+
 
 exports.obtenerTracksPlaylistDeSpotify = async (req, res) => {
   try {
