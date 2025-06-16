@@ -22,6 +22,8 @@ const {
  *     summary: Obtener notificaciones de un usuario
  *     description: Recupera todas las notificaciones asociadas a un usuario.
  *     tags: [Notificaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: usuarioId
@@ -71,6 +73,8 @@ router.get('/usuarios/:usuarioId', requireAuth, obtenerNotificaciones);
  *     summary: Crear una nueva notificación
  *     description: Crea una notificación dirigida a un usuario específico.
  *     tags: [Notificaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -115,6 +119,8 @@ router.post('/', requireAuth, crearNotificacion);
  *     summary: Marcar notificación como leída
  *     description: Marca una notificación como leída por el usuario.
  *     tags: [Notificaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -141,6 +147,8 @@ router.put('/:id/leido', requireAuth, marcarNotificacionLeida);
  *     summary: Eliminar notificación
  *     description: Elimina una notificación del sistema.
  *     tags: [Notificaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

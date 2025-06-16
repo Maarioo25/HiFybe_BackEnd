@@ -23,6 +23,8 @@ const requireAuth = require('../middleware/auth');
  *     summary: Obtener amistades de un usuario
  *     description: Recupera la lista de amigos de un usuario específico.
  *     tags: [Amistades]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -60,6 +62,8 @@ router.get('/usuarios/:userId', requireAuth, obtenerAmistades);
  *     summary: Enviar solicitud de amistad
  *     description: Envía una nueva solicitud de amistad a otro usuario.
  *     tags: [Amistades]
+ *     security:  
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -96,6 +100,8 @@ router.post('/solicitudes', requireAuth, enviarSolicitudAmistad);
  *     summary: Responder solicitud de amistad
  *     description: Acepta o rechaza una solicitud de amistad existente.
  *     tags: [Amistades]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: solicitudId
@@ -135,6 +141,8 @@ router.put('/solicitudes/:solicitudId', requireAuth, responderSolicitudAmistad);
  *     summary: Eliminar una amistad
  *     description: Elimina una relación de amistad existente.
  *     tags: [Amistades]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: amistadId
@@ -157,6 +165,8 @@ router.delete('/:amistadId', requireAuth, eliminarAmistad);
  *     summary: Obtener solicitudes de amistad pendientes
  *     description: Recupera todas las solicitudes de amistad pendientes de un usuario.
  *     tags: [Amistades]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: usuarioId

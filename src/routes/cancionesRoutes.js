@@ -100,6 +100,8 @@ router.get('/:id', obtenerCancionPorId);
  *     summary: Crear una nueva canción
  *     description: Agrega una nueva canción al sistema.
  *     tags: [Canciones]
+ *     security:  
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -144,6 +146,8 @@ router.post('/', requireAuth, crearCancion);
  *     summary: Actualizar una canción
  *     description: Modifica los detalles de una canción existente mediante su ID.
  *     tags: [Canciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -192,6 +196,8 @@ router.put('/:id', requireAuth, actualizarCancion);
  *     summary: Eliminar una canción
  *     description: Elimina una canción del sistema mediante su ID.
  *     tags: [Canciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

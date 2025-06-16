@@ -23,6 +23,8 @@ const requireAuth = require('../middleware/auth');
  *     summary: Crear una nueva conversación
  *     description: Inicia una conversación entre dos usuarios (deben ser amigos).
  *     tags: [Conversaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -54,6 +56,8 @@ router.post('/', requireAuth, crearConversacion);
  *     summary: Obtener conversaciones de un usuario
  *     description: Recupera todas las conversaciones en las que participa un usuario.
  *     tags: [Conversaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: usuarioId
@@ -94,6 +98,8 @@ router.get('/usuarios/:usuarioId', requireAuth, obtenerConversacionesUsuario);
  *     summary: Obtener mensajes de una conversación
  *     description: Recupera todos los mensajes de una conversación específica.
  *     tags: [Conversaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -136,6 +142,8 @@ router.get('/:id/mensajes', requireAuth, obtenerMensajesConversacion);
  *     summary: Enviar un mensaje en una conversación
  *     description: Añade un nuevo mensaje a una conversación existente.
  *     tags: [Conversaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -177,6 +185,8 @@ router.post('/:id/mensajes', requireAuth, enviarMensaje);
  *     summary: Marcar mensaje como leído
  *     description: Cambia el estado de un mensaje a leído.
  *     tags: [Conversaciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -537,6 +537,8 @@ router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
  *   put:
  *     summary: Actualizar última canción escuchada
  *     tags: [Música]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -569,6 +571,8 @@ router.put('/:id/cancion', requireAuth, actualizarCancion);
  *   get:
  *     summary: Obtener última canción escuchada
  *     tags: [Música]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

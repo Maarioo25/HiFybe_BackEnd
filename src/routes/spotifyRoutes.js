@@ -22,6 +22,8 @@ const {
  *       Devuelve una lista de playlists públicas de Spotify asociadas al usuario indicado.
  *       Este usuario debe tener su cuenta de Spotify vinculada previamente.
  *     tags: [Spotify]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -70,6 +72,8 @@ router.get('/playlists/:userId', requireAuth, obtenerPlaylistsDeSpotify);
  *       Devuelve una lista de canciones recomendadas usando la API de Spotify
  *       con semillas predeterminadas configuradas en el backend.
  *     tags: [Spotify]
+ *     security:  
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de canciones recomendadas obtenida correctamente.

@@ -20,6 +20,8 @@ const {
  *     summary: Registrar reproducción de una canción
  *     description: Registra una nueva reproducción de una canción por parte de un usuario.
  *     tags: [Reproducciones]
+ *     security:  
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -56,6 +58,8 @@ router.post('/', requireAuth, registrarReproduccion);
  *     summary: Obtener historial de reproducciones de un usuario
  *     description: Recupera todas las reproducciones realizadas por un usuario.
  *     tags: [Reproducciones]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: usuarioId

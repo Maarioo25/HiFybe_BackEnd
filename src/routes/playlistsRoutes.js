@@ -53,6 +53,8 @@ router.get('/', obtenerPlaylists);
  *     summary: Crear una nueva playlist
  *     description: Crea una nueva lista de reproducción.
  *     tags: [Playlists]
+ *     security:  
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -89,6 +91,8 @@ router.post('/', requireAuth, crearPlaylist);
  *     summary: Obtener detalle de playlist de un usuario amigo
  *     description: Recupera la información de una playlist de un amigo por sus IDs.
  *     tags: [Playlists]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -118,6 +122,8 @@ router.get('/friends/:userId/playlists/:playlistId', requireAuth, getPlaylistByI
  *     summary: Actualizar una playlist
  *     description: Modifica los detalles de una playlist existente.
  *     tags: [Playlists]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -157,6 +163,8 @@ router.put('/:id', requireAuth, actualizarPlaylist);
  *     summary: Eliminar una playlist
  *     description: Elimina una lista de reproducción mediante su ID.
  *     tags: [Playlists]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -179,6 +187,8 @@ router.delete('/:id', requireAuth, eliminarPlaylist);
  *     summary: Agregar canción a una playlist
  *     description: Añade una canción existente a una playlist específica.
  *     tags: [Playlists]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -214,6 +224,8 @@ router.post('/:id/canciones', requireAuth, agregarCancionAPlaylist);
  *     summary: Eliminar canción de una playlist
  *     description: Elimina una canción específica de una playlist.
  *     tags: [Playlists]
+ *     security:  
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

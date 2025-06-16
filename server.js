@@ -222,10 +222,27 @@ passport.use('spotify-link', new SpotifyStrategy({
         version: '1.0.0',
         description: 'Documentación de la API con Swagger'
       },
-      servers: [{ url: 'https://api.mariobueno.info', description: 'API Pública' }]
+      servers: [
+        { url: 'https://api.mariobueno.info', description: 'API Pública' }
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT'
+          }
+        }
+      },
+      security: [
+        {
+          bearerAuth: []
+        }
+      ]
     },
     apis: ['./src/routes/*.js']
   };
+  
 
 
   const swaggerDocs = swaggerJsdoc(swaggerOptions);
