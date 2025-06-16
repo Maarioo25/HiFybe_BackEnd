@@ -243,8 +243,9 @@ passport.use('spotify-link', new SpotifyStrategy({
   app.use('/amistades', require('./src/routes/amistadesRoutes'));
   app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
   app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
-  app.use('/spotify', require('./src/routes/spotifyRoutes'))
+  app.use('/spotify', require('./src/routes/spotifyRoutes'));
   app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
+  
 
 // Conexión a MongoDB y arranque del servidor
   mongoose.connect(process.env.MONGO_URL)
