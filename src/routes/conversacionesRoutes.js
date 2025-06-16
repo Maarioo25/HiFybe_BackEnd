@@ -7,6 +7,7 @@ const {
   enviarMensaje,
   marcarMensajeLeido
 } = require('../controllers/conversacionesController');
+const requireAuth = require('../middleware/auth');
 
 /**
  * @swagger
@@ -84,7 +85,7 @@ router.post('/', crearConversacion);
  *       404:
  *         description: No se encontraron conversaciones.
  */
-router.get('/usuarios/:usuarioId', obtenerConversacionesUsuario);
+router.get('/usuarios/:usuarioId', requireAuth, obtenerConversacionesUsuario);
 
 /**
  * @swagger
