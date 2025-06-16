@@ -562,7 +562,7 @@ router.put('/:id/preferencias', requireAuth, actualizarPreferenciasUsuario);
  *       200:
  *         description: Canción actualizada correctamente.
  */
-router.put('/:id/cancion', actualizarCancion);
+router.put('/:id/cancion', requireAuth, actualizarCancion);
 
 /**
  * @swagger
@@ -581,7 +581,7 @@ router.put('/:id/cancion', actualizarCancion);
  *       200:
  *         description: Detalles de la última canción.
  */
-router.get('/:id/cancion', obtenerCancionActual);
+router.get('/:id/cancion', requireAuth, obtenerCancionActual);
 
 /**
  * @swagger

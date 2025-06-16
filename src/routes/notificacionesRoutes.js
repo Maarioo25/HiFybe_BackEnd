@@ -61,7 +61,7 @@ const {
  *       500:
  *         description: Error interno del servidor.
  */
-router.get('/usuarios/:usuarioId', obtenerNotificaciones);
+router.get('/usuarios/:usuarioId', requireAuth, obtenerNotificaciones);
 
 /**
  * @swagger
@@ -105,7 +105,7 @@ router.get('/usuarios/:usuarioId', obtenerNotificaciones);
  *       500:
  *         description: Error al crear la notificación.
  */
-router.post('/', crearNotificacion);
+router.post('/', requireAuth, crearNotificacion);
 
 /**
  * @swagger
@@ -131,7 +131,7 @@ router.post('/', crearNotificacion);
  *       500:
  *         description: Error interno del servidor.
  */
-router.put('/:id/leido', marcarNotificacionLeida);
+router.put('/:id/leido', requireAuth, marcarNotificacionLeida);
 
 /**
  * @swagger
@@ -157,6 +157,6 @@ router.put('/:id/leido', marcarNotificacionLeida);
  *       500:
  *         description: Error interno del servidor.
  */
-router.delete('/:id', eliminarNotificacion);
+router.delete('/:id', requireAuth, eliminarNotificacion);
 
 module.exports = router;

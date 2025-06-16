@@ -7,6 +7,7 @@ const {
   eliminarAmistad,
   obtenerSolicitudesAmistad
 } = require('../controllers/amistadesController');
+const requireAuth = require('../middleware/auth');
 
 /**
  * @swagger
@@ -50,7 +51,7 @@ const {
  *       404:
  *         description: No se encontraron amistades.
  */
-router.get('/usuarios/:userId', obtenerAmistades);
+router.get('/usuarios/:userId', requireAuth, obtenerAmistades);
 
 /**
  * @swagger
@@ -86,7 +87,7 @@ router.get('/usuarios/:userId', obtenerAmistades);
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/solicitudes', enviarSolicitudAmistad);
+router.post('/solicitudes', requireAuth, enviarSolicitudAmistad);
 
 /**
  * @swagger
@@ -125,7 +126,7 @@ router.post('/solicitudes', enviarSolicitudAmistad);
  *       404:
  *         description: Solicitud no encontrada.
  */
-router.put('/solicitudes/:solicitudId', responderSolicitudAmistad);
+router.put('/solicitudes/:solicitudId', requireAuth, responderSolicitudAmistad);
 
 /**
  * @swagger
@@ -147,7 +148,7 @@ router.put('/solicitudes/:solicitudId', responderSolicitudAmistad);
  *       404:
  *         description: Amistad no encontrada.
  */
-router.delete('/:amistadId', eliminarAmistad);
+router.delete('/:amistadId', requireAuth, eliminarAmistad);
 
 /**
  * @swagger
@@ -188,6 +189,6 @@ router.delete('/:amistadId', eliminarAmistad);
  *       500:
  *         description: Error interno del servidor.
  */
-router.get('/usuarios/:usuarioId/solicitudes', obtenerSolicitudesAmistad);
+router.get('/usuarios/:usuarioId/solicitudes', requireAuth, obtenerSolicitudesAmistad);
 
 module.exports = router;

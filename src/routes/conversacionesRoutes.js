@@ -45,7 +45,7 @@ const requireAuth = require('../middleware/auth');
  *       400:
  *         description: Datos de entrada inválidos.
  */
-router.post('/', crearConversacion);
+router.post('/', requireAuth, crearConversacion);
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.get('/usuarios/:usuarioId', requireAuth, obtenerConversacionesUsuario);
  *       404:
  *         description: Conversación no encontrada.
  */
-router.get('/:id/mensajes', obtenerMensajesConversacion);
+router.get('/:id/mensajes', requireAuth, obtenerMensajesConversacion);
 
 /**
  * @swagger
@@ -168,7 +168,7 @@ router.get('/:id/mensajes', obtenerMensajesConversacion);
  *       404:
  *         description: Conversación no encontrada.
  */
-router.post('/:id/mensajes', enviarMensaje);
+router.post('/:id/mensajes', requireAuth, enviarMensaje);
 
 /**
  * @swagger
@@ -192,6 +192,6 @@ router.post('/:id/mensajes', enviarMensaje);
  *       404:
  *         description: Mensaje no encontrado.
  */
-router.put('/mensajes/:id/leido', marcarMensajeLeido);
+router.put('/mensajes/:id/leido', requireAuth, marcarMensajeLeido);
 
 module.exports = router;

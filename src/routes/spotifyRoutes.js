@@ -58,7 +58,7 @@ const {
  *       500:
  *         description: Error interno del servidor o en la comunicación con la API de Spotify.
  */
-router.get('/playlists/:userId', obtenerPlaylistsDeSpotify);
+router.get('/playlists/:userId', requireAuth, obtenerPlaylistsDeSpotify);
 
 /**
  * @swagger
@@ -94,6 +94,6 @@ router.get('/playlists/:userId', obtenerPlaylistsDeSpotify);
  *       500:
  *         description: Error al obtener recomendaciones desde la API de Spotify.
  */
-router.get('/recomendaciones', obtenerRecomendacionesDeSpotify);
+router.get('/recomendaciones', requireAuth, obtenerRecomendacionesDeSpotify);
 
 module.exports = router;

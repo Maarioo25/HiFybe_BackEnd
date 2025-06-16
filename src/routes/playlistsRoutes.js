@@ -79,7 +79,7 @@ router.get('/', obtenerPlaylists);
  *       201:
  *         description: Playlist creada correctamente.
  */
-router.post('/', crearPlaylist);
+router.post('/', requireAuth, crearPlaylist);
 
 /**
  * @swagger
@@ -107,7 +107,7 @@ router.post('/', crearPlaylist);
  *       404:
  *         description: Playlist o usuario no encontrado.
  */
-router.get('/friends/:userId/playlists/:playlistId', getPlaylistById);
+router.get('/friends/:userId/playlists/:playlistId', requireAuth, getPlaylistById);
 
 
 /**
@@ -147,7 +147,7 @@ router.get('/friends/:userId/playlists/:playlistId', getPlaylistById);
  *       404:
  *         description: Playlist no encontrada.
  */
-router.put('/:id', actualizarPlaylist);
+router.put('/:id', requireAuth, actualizarPlaylist);
 
 /**
  * @swagger
@@ -169,7 +169,7 @@ router.put('/:id', actualizarPlaylist);
  *       404:
  *         description: Playlist no encontrada.
  */
-router.delete('/:id', eliminarPlaylist);
+router.delete('/:id', requireAuth, eliminarPlaylist);
 
 /**
  * @swagger
@@ -204,7 +204,7 @@ router.delete('/:id', eliminarPlaylist);
  *       404:
  *         description: Playlist o canción no encontrada.
  */
-router.post('/:id/canciones', agregarCancionAPlaylist);
+router.post('/:id/canciones', requireAuth, agregarCancionAPlaylist);
 
 /**
  * @swagger
@@ -232,6 +232,6 @@ router.post('/:id/canciones', agregarCancionAPlaylist);
  *       404:
  *         description: Playlist o canción no encontrada.
  */
-router.delete('/:id/canciones/:cancionId', eliminarCancionDePlaylist);
+router.delete('/:id/canciones/:cancionId', requireAuth, eliminarCancionDePlaylist);
 
 module.exports = router;

@@ -46,7 +46,7 @@ const {
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/', registrarReproduccion);
+router.post('/', requireAuth, registrarReproduccion);
 
 /**
  * @swagger
@@ -87,6 +87,6 @@ router.post('/', registrarReproduccion);
  *       500:
  *         description: Error interno del servidor.
  */
-router.get('/usuarios/:usuarioId', obtenerReproduccionesUsuario);
+router.get('/usuarios/:usuarioId', requireAuth, obtenerReproduccionesUsuario);
 
 module.exports = router;

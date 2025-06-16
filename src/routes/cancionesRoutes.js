@@ -8,6 +8,7 @@ const {
   eliminarCancion,
   obtenerCancionSpotify
 } = require('../controllers/cancionesController');
+const requireAuth = require('../middleware/auth');
 
 /**
  * @swagger
@@ -134,7 +135,7 @@ router.get('/:id', obtenerCancionPorId);
  *       400:
  *         description: Datos de entrada inválidos.
  */
-router.post('/', crearCancion);
+router.post('/', requireAuth, crearCancion);
 
 /**
  * @swagger
@@ -182,7 +183,7 @@ router.post('/', crearCancion);
  *       404:
  *         description: Canción no encontrada.
  */
-router.put('/:id', actualizarCancion);
+router.put('/:id', requireAuth, actualizarCancion);
 
 /**
  * @swagger
@@ -204,7 +205,7 @@ router.put('/:id', actualizarCancion);
  *       404:
  *         description: Canción no encontrada.
  */
-router.delete('/:id', eliminarCancion);
+router.delete('/:id', requireAuth, eliminarCancion);
 
 /**
  * @swagger
