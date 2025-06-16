@@ -1,4 +1,3 @@
-// routes/usuarios.js
 const express = require('express');
 const passport = require('passport');
 const requireAuth = require('../middleware/auth');
