@@ -109,6 +109,7 @@ router.post('/', crearPlaylist);
  */
 router.get('/friends/:userId/playlists/:playlistId', getPlaylistById);
 
+
 /**
  * @swagger
  * /playlists/{id}:
