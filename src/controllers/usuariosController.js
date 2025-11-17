@@ -69,13 +69,14 @@ async function emitirTokenYCookie(usuario, req, res) {
   }
 
   res.cookie('token', token, {
-    httpOnly: true,
-    sameSite: 'None',
-    secure: true,
-    domain: '.mariobueno.info',
-    path: '/',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000
+  // NO especificar domain para que funcione cross-domain en Vercel
+});
+
 
   if (desdeSpotify) {
     console.log("Token de sesión enviado tras login con Spotify.");
@@ -435,12 +436,12 @@ exports.spotifyAuthFailureHandler = (req, res) => {
 
 exports.logoutUser = (req, res) => {
   res.clearCookie('token', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    domain: '.mariobueno.info',
-    path: '/'
-  });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  path: '/'
+  // NO especificar domain
+});
   console.log("Cookie enviada.");
   res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
 };
