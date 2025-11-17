@@ -21,8 +21,8 @@ const app = express();
   const allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    'https://mariobueno.info',
-    'https://api.mariobueno.info',
+    'https://hifybe.vercel.app', // dominio frontend actualizado
+    'https://hifybe-backend.vercel.app', // dominio backend actualizado
     undefined
   ];
 
@@ -48,7 +48,6 @@ const app = express();
   app.use(passport.initialize());
 
   app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
 
 // Configuración de Passport para Google
   passport.use(new GoogleStrategy({
@@ -157,7 +156,6 @@ passport.use(new SpotifyStrategy({
       access: usuario.spotifyAccessToken,
       refresh: usuario.spotifyRefreshToken
     });
-    
 
     console.log('Usuario autenticado o vinculado:', usuario.email);
 
@@ -168,7 +166,6 @@ passport.use(new SpotifyStrategy({
     done(err, null);
   }
 }));
-
 
 passport.use('spotify-link', new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
@@ -204,7 +201,6 @@ passport.use('spotify-link', new SpotifyStrategy({
     user.spotifyRefreshToken = refreshToken;
     await user.save();
 
-
     console.log(`[Spotify-Link] Usuario ${user.email} vinculado correctamente con Spotify`);
     done(null, user);
   } catch (err) {
@@ -213,49 +209,47 @@ passport.use('spotify-link', new SpotifyStrategy({
   }
 }));
 
-  //Swagger setup
-  const swaggerOptions = {
-    swaggerDefinition: {
-      openapi: '3.0.0',
-      info: {
-        title: 'API de HiFybe',
-        version: '1.0.0',
-        description: 'Documentación de la API con Swagger'
-      },
-      servers: [{ url: 'https://api.mariobueno.info', description: 'API Pública' }]
+//Swagger setup
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API de HiFybe',
+      version: '1.0.0',
+      description: 'Documentación de la API con Swagger'
     },
-    apis: ['./src/routes/*.js']
-  };
+    servers: [{ url: 'https://hifybe-backend.vercel.app', description: 'API Pública' }] // dominio backend actualizado en Swagger
+  },
+  apis: ['./src/routes/*.js']
+};
 
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-  const swaggerDocs = swaggerJsdoc(swaggerOptions);
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.get('/', (req, res) => {
+  res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
+});
 
-  app.get('/', (req, res) => {
-    res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
-  });
-
-  // Middleware de autenticación
-  app.use('/usuarios', require('./src/routes/usuariosRoutes'));
-  app.use('/canciones', require('./src/routes/cancionesRoutes'));
-  app.use('/playlists', require('./src/routes/playlistsRoutes'));
-  app.use('/reproducciones', require('./src/routes/reproduccionesRoutes'));
-  app.use('/amistades', require('./src/routes/amistadesRoutes'));
-  app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
-  app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
-  app.use('/spotify', require('./src/routes/spotifyRoutes'));
-  app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
-  
+// Middleware de autenticación
+app.use('/usuarios', require('./src/routes/usuariosRoutes'));
+app.use('/canciones', require('./src/routes/cancionesRoutes'));
+app.use('/playlists', require('./src/routes/playlistsRoutes'));
+app.use('/reproducciones', require('./src/routes/reproduccionesRoutes'));
+app.use('/amistades', require('./src/routes/amistadesRoutes'));
+app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
+app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
+app.use('/spotify', require('./src/routes/spotifyRoutes'));
+app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
 
 // Conexión a MongoDB y arranque del servidor
-  mongoose.connect(process.env.MONGO_URL)
-    .then(() => {
-      const PORT = process.env.PORT || 5000;
-      app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Servidor corriendo en https://api.mariobueno.info`);
-        console.log(`Swagger disponible en https://api.mariobueno.info/docs`);
-      });
-    })
-    .catch(err => {
-      console.error('Error conectando a MongoDB:', err);
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor corriendo en https://hifybe-backend.vercel.app`);
+      console.log(`Swagger disponible en https://hifybe-backend.vercel.app/docs`);
     });
+  })
+  .catch(err => {
+    console.error('Error conectando a MongoDB:', err);
+  });
