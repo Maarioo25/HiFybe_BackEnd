@@ -17,71 +17,71 @@ dotenv.config();
 // Configuración de la conexión a MongoDB
 const app = express();
 
-  // Configuración de CORS
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://hifybe.vercel.app', // dominio frontend actualizado
-    'https://hifybe-backend.vercel.app', // dominio backend actualizado
-    undefined
-  ];
+// Configuración de CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://hifybe.vercel.app', // dominio frontend actualizado
+  'https://hifybe-backend.vercel.app', // dominio backend actualizado
+  undefined
+];
 
-  // Middleware de CORS
-  app.use(cors({
-    origin: function (origin, callback) {
-      console.log('Petición desde origin:', origin);
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, origin);
-      } else {
-        callback(new Error('No permitido por CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Authorization', 'Set-Cookie']
-  }));
+// Middleware de CORS
+app.use(cors({
+  origin: function (origin, callback) {
+    console.log('Petición desde origin:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Authorization', 'Set-Cookie']
+}));
 
-  // Middleware de Express
-  app.use(express.json());
-  app.use(cookieParser());
-  app.use(passport.initialize());
+// Middleware de Express
+app.use(express.json());
+app.use(cookieParser());
+app.use(passport.initialize());
 
-  app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Configuración de Passport para Google
-  passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    passReqToCallback: true
-  }, async (req, accessToken, refreshToken, profile, done) => {
-    try {
-      const User = require('./src/models/usuario');
-      const email = profile.emails?.[0]?.value;
-      if (!email) return done(new Error('No se encontró un email en el perfil de Google'), null);
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL,
+  passReqToCallback: true
+}, async (req, accessToken, refreshToken, profile, done) => {
+  try {
+    const User = require('./src/models/usuario');
+    const email = profile.emails?.[0]?.value;
+    if (!email) return done(new Error('No se encontró un email en el perfil de Google'), null);
 
-      let user = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
-      if (user) {
-        if (!user.googleId) user.googleId = profile.id;
-        if (!user.nombre || user.nombre === 'Usuario') user.nombre = profile.name?.givenName || user.nombre;
-        if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = profile.name?.familyName || user.apellidos;
-        await user.save();
-      } else {
-        user = new User({
-          googleId: profile.id,
-          nombre: profile.name?.givenName || 'Usuario',
-          apellidos: profile.name?.familyName || 'Desconocido',
-          email,
-          foto_perfil: profile.photos?.[0]?.value || '',
-          password: await bcrypt.hash(Math.random().toString(36), 10),
-          auth_proveedor: 'google'
-        });
-        await user.save();
-      }
+    if (user) {
+      if (!user.googleId) user.googleId = profile.id;
+      if (!user.nombre || user.nombre === 'Usuario') user.nombre = profile.name?.givenName || user.nombre;
+      if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = profile.name?.familyName || user.apellidos;
+      await user.save();
+    } else {
+      user = new User({
+        googleId: profile.id,
+        nombre: profile.name?.givenName || 'Usuario',
+        apellidos: profile.name?.familyName || 'Desconocido',
+        email,
+        foto_perfil: profile.photos?.[0]?.value || '',
+        password: await bcrypt.hash(Math.random().toString(36), 10),
+        auth_proveedor: 'google'
+      });
+      await user.save();
+    }
 
-      done(null, user);
+    done(null, user);
   } catch (err) {
     done(err, null);
   }
@@ -224,15 +224,7 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
-  swaggerOptions: {
-    persistAuthorization: true,
-    docExpansion: 'none'
-  },
-  customSiteTitle: 'HiFybe API Docs'
-}));
-
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.get('/', (req, res) => {
   res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
@@ -249,15 +241,23 @@ app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
 app.use('/spotify', require('./src/routes/spotifyRoutes'));
 app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
 
-// Conexión a MongoDB y arranque del servidor
+// Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Servidor corriendo en https://hifybe-backend.vercel.app`);
-      console.log(`Swagger disponible en https://hifybe-backend.vercel.app/docs`);
-    });
+    console.log('Conectado a MongoDB Atlas');
   })
   .catch(err => {
     console.error('Error conectando a MongoDB:', err);
   });
+
+// Para producción en Vercel, exporta app
+module.exports = app;
+
+// Para desarrollo local, mantén el listen solo cuando se ejecuta directamente
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Swagger disponible en http://localhost:${PORT}/docs`);
+  });
+}
