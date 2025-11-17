@@ -7,7 +7,7 @@ const passport = require('passport');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const bcrypt = require('bcryptjs');
-const swaggerUi = require('swagger-ui-express');
+const { swaggerDocs, getSwaggerHTML } = require('./src/config/swaggerConfig');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -231,43 +231,9 @@ app.get('/docs/swagger.json', (req, res) => {
   res.send(swaggerDocs);
 });
 
-// Endpoint para servir la UI de Swagger desde CDN
+// Endpoint para servir la UI de Swagger
 app.get('/docs', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <title>HiFybe API Docs</title>
-      <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
-      <style>
-        body { margin: 0; padding: 0; }
-      </style>
-    </head>
-    <body>
-      <div id="swagger-ui"></div>
-      <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-      <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
-      <script>
-        window.onload = function() {
-          window.ui = SwaggerUIBundle({
-            url: '/docs/swagger.json',
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [
-              SwaggerUIBundle.presets.apis,
-              SwaggerUIStandalonePreset
-            ],
-            plugins: [
-              SwaggerUIBundle.plugins.DownloadUrl
-            ],
-            layout: "BaseLayout"
-          });
-        };
-      </script>
-    </body>
-    </html>
-  `);
+  res.send(getSwaggerHTML());
 });
 
 
