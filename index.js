@@ -224,7 +224,52 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Endpoint para servir el JSON de Swagger
+app.get('/docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerDocs);
+});
+
+// Endpoint para servir la UI de Swagger desde CDN
+app.get('/docs', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>HiFybe API Docs</title>
+      <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+      <style>
+        body { margin: 0; padding: 0; }
+      </style>
+    </head>
+    <body>
+      <div id="swagger-ui"></div>
+      <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+      <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+      <script>
+        window.onload = function() {
+          window.ui = SwaggerUIBundle({
+            url: '/docs/swagger.json',
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset
+            ],
+            plugins: [
+              SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "BaseLayout"
+          });
+        };
+      </script>
+    </body>
+    </html>
+  `);
+});
+
 
 app.get('/', (req, res) => {
   res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
