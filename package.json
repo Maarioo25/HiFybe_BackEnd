@@ -2,10 +2,11 @@
   "name": "api",
   "version": "1.0.0",
   "description": "API de HiFybe",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "vercel-start": "node index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mario Bueno López mariobueno060@gmail.com",
@@ -20,6 +21,7 @@
     "express-session": "^1.18.1",
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.0.0",
     "mongoose": "^8.13.2",
     "multer": "^2.0.1",
     "passport": "^0.7.0",
