@@ -13,9 +13,10 @@ const path = require('path');
 
 dotenv.config();
 
-// Configuración de la conexión a MongoDB
 const app = express();
+const fetch = require('node-fetch');
 
+// Configuración de CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -26,7 +27,6 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     console.log('Petición desde origin:', origin);
-    // Permitir peticiones sin origin (Postman, curl, server-to-server)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {
@@ -41,13 +41,49 @@ app.use(cors({
   exposedHeaders: ['Authorization', 'Set-Cookie']
 }));
 
-
 // Middleware de Express
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
-
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// ⬇️⬇️⬇️ CONEXIÓN A MONGODB - DEBE IR AQUÍ, ANTES DE LAS RUTAS ⬇️⬇️⬇️
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) {
+    console.log('Usando conexión existente a MongoDB');
+    return;
+  }
+
+  try {
+    const db = await mongoose.connect(process.env.MONGO_URL, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+
+    isConnected = db.connections[0].readyState === 1;
+    console.log('Nueva conexión a MongoDB Atlas establecida');
+  } catch (error) {
+    console.error('Error conectando a MongoDB:', error);
+    throw error;
+  }
+};
+
+// Middleware para asegurar conexión antes de cada request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Error en middleware de conexión:', error);
+    res.status(500).json({ 
+      mensaje: 'Error de conexión a la base de datos',
+      error: error.message 
+    });
+  }
+});
+// ⬆️⬆️⬆️ FIN DE CONEXIÓN A MONGODB ⬆️⬆️⬆️
 
 // Configuración de Passport para Google
 passport.use(new GoogleStrategy({
@@ -94,8 +130,6 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
   console.error('UNHANDLED REJECTION:', reason);
 });
-
-const fetch = require('node-fetch');
 
 // Configuración de Passport para Spotify
 passport.use(new SpotifyStrategy({
@@ -209,23 +243,21 @@ passport.use('spotify-link', new SpotifyStrategy({
   }
 }));
 
-// Endpoint para servir el JSON de Swagger
+// Swagger setup
 app.get('/docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerDocs);
 });
 
-// Endpoint para servir la UI de Swagger
 app.get('/docs', (req, res) => {
   res.send(getSwaggerHTML());
 });
-
 
 app.get('/', (req, res) => {
   res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
 });
 
-// Middleware de autenticación
+// Rutas - DEBEN IR DESPUÉS DEL MIDDLEWARE DE CONEXIÓN
 app.use('/usuarios', require('./src/routes/usuariosRoutes'));
 app.use('/canciones', require('./src/routes/cancionesRoutes'));
 app.use('/playlists', require('./src/routes/playlistsRoutes'));
@@ -235,40 +267,6 @@ app.use('/conversaciones', require('./src/routes/conversacionesRoutes'));
 app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
 app.use('/spotify', require('./src/routes/spotifyRoutes'));
 app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
-
-// Conexión a MongoDB con configuración para serverless
-let cachedDb = null;
-
-async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
-  }
-
-  try {
-    const db = await mongoose.connect(process.env.MONGO_URL, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    
-    cachedDb = db;
-    console.log('Conectado a MongoDB Atlas');
-    return db;
-  } catch (err) {
-    console.error('Error conectando a MongoDB:', err);
-    throw err;
-  }
-}
-
-// Conectar antes de cada petición
-app.use(async (req, res, next) => {
-  try {
-    await connectToDatabase();
-    next();
-  } catch (err) {
-    res.status(500).json({ error: 'Error de conexión a base de datos' });
-  }
-});
-
 
 // Para producción en Vercel, exporta app
 module.exports = app;
