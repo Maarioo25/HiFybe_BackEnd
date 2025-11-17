@@ -16,21 +16,21 @@ dotenv.config();
 // Configuración de la conexión a MongoDB
 const app = express();
 
-// Configuración de CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://hifybe.vercel.app', // dominio frontend actualizado
-  'https://hifybe-backend.vercel.app', // dominio backend actualizado
-  undefined
+  'https://hifybe.vercel.app',
+  'https://hifybe-backend.vercel.app'
 ];
 
-// Middleware de CORS
 app.use(cors({
   origin: function (origin, callback) {
     console.log('Petición desde origin:', origin);
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin);
+    // Permitir peticiones sin origin (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
     }
@@ -40,6 +40,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Authorization', 'Set-Cookie']
 }));
+
 
 // Middleware de Express
 app.use(express.json());
@@ -235,14 +236,39 @@ app.use('/notificaciones', require('./src/routes/notificacionesRoutes'));
 app.use('/spotify', require('./src/routes/spotifyRoutes'));
 app.use('/public', require('./src/routes/publicPlaylistsRoutes'));
 
-// Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => {
+// Conexión a MongoDB con configuración para serverless
+let cachedDb = null;
+
+async function connectToDatabase() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  try {
+    const db = await mongoose.connect(process.env.MONGO_URL, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    
+    cachedDb = db;
     console.log('Conectado a MongoDB Atlas');
-  })
-  .catch(err => {
+    return db;
+  } catch (err) {
     console.error('Error conectando a MongoDB:', err);
-  });
+    throw err;
+  }
+}
+
+// Conectar antes de cada petición
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Error de conexión a base de datos' });
+  }
+});
+
 
 // Para producción en Vercel, exporta app
 module.exports = app;
