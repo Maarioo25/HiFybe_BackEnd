@@ -218,13 +218,21 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'Documentación de la API con Swagger'
     },
-    servers: [{ url: 'https://hifybe-backend.vercel.app', description: 'API Pública' }] // dominio backend actualizado en Swagger
+    servers: [{ url: 'https://hifybe-backend.vercel.app', description: 'API Pública' }]
   },
   apis: ['./src/routes/*.js']
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'none'
+  },
+  customSiteTitle: 'HiFybe API Docs'
+}));
+
 
 app.get('/', (req, res) => {
   res.send('API HiFybe activa y funcionando, visita /docs para la documentación');
