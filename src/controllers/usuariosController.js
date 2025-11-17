@@ -47,7 +47,7 @@ async function emitirTokenYCookie(usuario, req, res) {
   const desdeSpotify = req.originalUrl.includes('/usuarios/spotify/callback');
   const desdeGoogle = req.originalUrl.includes('/usuarios/google/callback');
 
-  const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: usuario._id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   if (desdeSpotify && usuario.spotifyAccessToken) {
     try {
@@ -68,33 +68,36 @@ async function emitirTokenYCookie(usuario, req, res) {
     return res.redirect(redirUrl);
   }
 
+  // Configurar cookie (como respaldo para desarrollo local)
   res.cookie('token', token, {
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  secure: process.env.NODE_ENV === 'production',
-  path: '/',
-  maxAge: 7 * 24 * 60 * 60 * 1000
-  // NO especificar domain para que funcione cross-domain en Vercel
-});
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
 
-
+  // ⬇️ CAMBIO PRINCIPAL: Incluir token en la URL de redirección ⬇️
   if (desdeSpotify) {
     console.log("Token de sesión enviado tras login con Spotify.");
-    return res.redirect(`${process.env.FRONTEND_URL}?spotify_token=${usuario.spotifyAccessToken ?? ''}`);
+    return res.redirect(`${process.env.FRONTEND_URL}/auth-callback?token=${token}&spotify_token=${usuario.spotifyAccessToken ?? ''}`);
   }
 
   if (desdeGoogle) {
     console.log("Token de sesión enviado tras login con Google.");
-    return res.redirect(`${process.env.FRONTEND_URL}?google_token=${usuario.googleId ?? ''}`);
+    return res.redirect(`${process.env.FRONTEND_URL}/auth-callback?token=${token}`);
   }
 
+  // Para login manual, devolver el token en la respuesta JSON
   console.log("Token de sesión enviado tras login manual.");
   return res.json({
     mensaje: 'Inicio de sesión correcto',
-    usuario,
+    usuario: limpiarUsuario(usuario),
+    token, // ⬅️ Añadir token aquí
     spotifyAccessToken: usuario.spotifyAccessToken ?? null
   });
 }
+
 
 
 
