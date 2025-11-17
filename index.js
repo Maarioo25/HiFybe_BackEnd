@@ -10,7 +10,6 @@ const bcrypt = require('bcryptjs');
 const { swaggerDocs, getSwaggerHTML } = require('./src/config/swaggerConfig');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-const swaggerJsdoc = require('swagger-jsdoc');
 
 dotenv.config();
 
@@ -208,22 +207,6 @@ passport.use('spotify-link', new SpotifyStrategy({
     done(err, null);
   }
 }));
-
-//Swagger setup
-const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'API de HiFybe',
-      version: '1.0.0',
-      description: 'Documentación de la API con Swagger'
-    },
-    servers: [{ url: 'https://hifybe-backend.vercel.app', description: 'API Pública' }]
-  },
-  apis: ['./src/routes/*.js']
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Endpoint para servir el JSON de Swagger
 app.get('/docs/swagger.json', (req, res) => {
