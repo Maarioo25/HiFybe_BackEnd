@@ -131,16 +131,23 @@ exports.registrarUsuario = async (req, res) => {
       foto_perfil: finalAvatarUrl
     });
 
+    // Generar token para el usuario nuevo
+    const token = jwt.sign({ id: usuario._id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // Para móvil
     const isMobile = req.query?.mobile === "true" || req.body?.mobile === true;
     if (isMobile) {
-      const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
       return res.status(200).json({
         mensaje: 'Usuario registrado exitosamente.',
         token,
         usuario: limpiarUsuario(usuario)
-      });}
+      });
+    }
+
+    // Para web: devolver token también
     res.status(202).json({
       mensaje: 'Usuario registrado exitosamente.',
+      token, // ⬅️ AÑADIDO: Token incluido en la respuesta
       usuario: limpiarUsuario(usuario)
     });
   } catch (err) {
@@ -148,6 +155,7 @@ exports.registrarUsuario = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al registrar usuario.' });
   }
 };
+
 
 // ===================== LOGIN ===================== //
 
