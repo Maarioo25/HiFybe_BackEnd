@@ -105,12 +105,18 @@ passport.use(new GoogleStrategy({
       if (!user.apellidos || user.apellidos === 'Desconocido') user.apellidos = profile.name?.familyName || user.apellidos;
       await user.save();
     } else {
+      // NUEVO USUARIO - Generar avatar con ui-avatars
+      const nombre = profile.name?.givenName || 'Usuario';
+      const apellidos = profile.name?.familyName || '';
+      const nombreCompleto = `${nombre}${apellidos ? ' ' + apellidos : ''}`;
+      const nombreEncoded = encodeURIComponent(nombreCompleto);
+      
       user = new User({
         googleId: profile.id,
-        nombre: profile.name?.givenName || 'Usuario',
-        apellidos: profile.name?.familyName || 'Desconocido',
+        nombre: nombre,
+        apellidos: apellidos,
         email,
-        foto_perfil: profile.photos?.[0]?.value || '',
+        foto_perfil: `https://ui-avatars.com/api/?name=${nombreEncoded}&background=a78bfa&color=fff&size=200&bold=true`,
         password: await bcrypt.hash(Math.random().toString(36), 10),
         auth_proveedor: 'google'
       });
@@ -169,13 +175,17 @@ passport.use(new SpotifyStrategy({
       usuario = await User.findOne({ email });
 
       if (!usuario) {
+        // NUEVO USUARIO - Generar avatar con ui-avatars
+        const nombre = userData.display_name || 'Usuario';
+        const nombreEncoded = encodeURIComponent(nombre);
+        
         usuario = new User({
           spotifyId: userData.id,
           email: email,
-          nombre: userData.display_name || 'Usuario',
-          apellidos: 'Desconocido',
+          nombre: nombre,
+          apellidos: '',
           password: await bcrypt.hash(Math.random().toString(36), 10),
-          foto_perfil: userData.images?.[0]?.url || '',
+          foto_perfil: `https://ui-avatars.com/api/?name=${nombreEncoded}&background=a78bfa&color=fff&size=200&bold=true`,
           auth_proveedor: 'spotify'
         });
       }
@@ -274,7 +284,7 @@ module.exports = app;
 // Para desarrollo local, mantén el listen solo cuando se ejecuta directamente
 if (require.main === module) {
   require('./src/jobs/cleanupGuests');
-  
+
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
