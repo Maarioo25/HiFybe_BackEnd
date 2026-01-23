@@ -203,35 +203,31 @@ exports.getCurrentUser = async (req, res) => {
 
 exports.loginInvitado = async (req, res) => {
   try {
-    // Generar identificador único para el invitado
-    const guestId = `invitado_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const guestNumber = Math.floor(Math.random() * 9999);
     
-    // Crear usuario invitado temporal
     const invitado = await Usuario.create({
-      nombre: 'Invitado',
-      apellidos: guestId,
-      email: `${guestId}@invitado.local`, // Email único temporal
+      nombre: `Invitado ${guestNumber}`,
+      apellidos: '',
+      email: `invitado_${Date.now()}_${Math.random().toString(36).substr(2, 9)}@invitado.local`,
       es_invitado: true,
       auth_proveedor: 'guest',
-      fecha_expiracion_invitado: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-      password: await bcrypt.hash(Math.random().toString(36), 10), // Password random
-      foto_perfil: '/avatars/guest.jpg'
+      fecha_expiracion_invitado: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      password: await bcrypt.hash(Math.random().toString(36), 10),
+      foto_perfil: 'https://ui-avatars.com/api/?name=Invitado&background=a78bfa&color=fff&size=200&bold=true'
     });
 
-    // Generar JWT normal (igual que usuarios registrados)
     const token = jwt.sign(
       { id: invitado._id, email: invitado.email, es_invitado: true }, 
       process.env.JWT_SECRET, 
-      { expiresIn: '30d' } // Token más largo para invitados
+      { expiresIn: '30d' }
     );
 
-    // Configurar cookie
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 días
+      maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
     res.json({
