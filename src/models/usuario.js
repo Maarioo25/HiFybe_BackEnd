@@ -5,7 +5,12 @@ const usuarioSchema = new mongoose.Schema({
   apellidos:           { type: String,  trim: true },
   email:               { type: String,  required: true, unique: true, trim: true },
   auth_proveedor:      { type: String,  enum: ['local', 'google', 'spotify'], default: 'local' },
-  password:            { type: String,  required: function () { return this.auth_proveedor === 'local' } },
+  password: { type: String, required: function () { return this.auth_proveedor === 'local' } },
+  
+  es_invitado: { type: Boolean, default: false },
+  fecha_expiracion_invitado: { type: Date },
+
+
   googleId:            { type: String,  unique: true, sparse: true, trim: true },
   ultima_cancion_id:   { type: String, default: null },
   bio:                 { type: String, default: '' },
@@ -39,5 +44,6 @@ const usuarioSchema = new mongoose.Schema({
 });
 
 usuarioSchema.index({ ubicacion: '2dsphere' });
+usuarioSchema.index({ es_invitado: 1, fecha_expiracion_invitado: 1 });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);

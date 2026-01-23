@@ -11,6 +11,8 @@ const {
   actualizarUsuario,
   eliminarUsuario,
   loginUsuario,
+  loginInvitado,
+  convertirInvitadoAUsuario,
   logoutUser,
   getCurrentUser,
   googleAuth,
@@ -100,6 +102,10 @@ router.post('/register', registrarUsuario);
  *         description: Inicio de sesión exitoso.
  */
 router.post('/login', loginUsuario);
+
+router.post('/guest/login', loginInvitado);
+
+router.post('/guest/register', requireAuth, convertirInvitadoAUsuario);
 
 /**
  * @swagger

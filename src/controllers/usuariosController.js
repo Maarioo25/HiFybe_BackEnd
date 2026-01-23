@@ -199,6 +199,106 @@ exports.getCurrentUser = async (req, res) => {
   }
 };
 
+// ===================== INVITADOS ===================== //
+
+exports.loginInvitado = async (req, res) => {
+  try {
+    // Generar identificador único para el invitado
+    const guestId = `invitado_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Crear usuario invitado temporal
+    const invitado = await Usuario.create({
+      nombre: 'Invitado',
+      apellidos: guestId,
+      email: `${guestId}@invitado.local`, // Email único temporal
+      es_invitado: true,
+      auth_proveedor: 'guest',
+      fecha_expiracion_invitado: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
+      password: await bcrypt.hash(Math.random().toString(36), 10), // Password random
+      foto_perfil: '/avatars/guest.jpg'
+    });
+
+    // Generar JWT normal (igual que usuarios registrados)
+    const token = jwt.sign(
+      { id: invitado._id, email: invitado.email, es_invitado: true }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '30d' } // Token más largo para invitados
+    );
+
+    // Configurar cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 días
+    });
+
+    res.json({
+      mensaje: 'Sesión de invitado creada',
+      token,
+      usuario: limpiarUsuario(invitado),
+      es_invitado: true
+    });
+
+  } catch (err) {
+    console.error('Error al crear sesión de invitado:', err);
+    res.status(500).json({ mensaje: 'Error al crear sesión de invitado' });
+  }
+};
+
+// Función para convertir invitado a usuario registrado
+exports.convertirInvitadoAUsuario = async (req, res) => {
+  try {
+    const { nombre, apellidos, email, password } = req.body;
+    const invitadoId = req.user.id;
+
+    // Verificar que es un invitado
+    const invitado = await Usuario.findById(invitadoId);
+    if (!invitado || !invitado.es_invitado) {
+      return res.status(400).json({ mensaje: 'Usuario no es invitado' });
+    }
+
+    // Verificar que el email no esté en uso
+    const emailExiste = await Usuario.findOne({ 
+      email, 
+      es_invitado: false 
+    });
+    if (emailExiste) {
+      return res.status(403).json({ mensaje: 'Email ya registrado' });
+    }
+
+    // Actualizar usuario invitado a usuario real
+    const hashedPassword = await bcrypt.hash(password, 10);
+    invitado.nombre = nombre;
+    invitado.apellidos = apellidos;
+    invitado.email = email;
+    invitado.password = hashedPassword;
+    invitado.es_invitado = false;
+    invitado.auth_proveedor = 'local';
+    invitado.fecha_expiracion_invitado = undefined;
+    
+    await invitado.save();
+
+    // Generar nuevo token
+    const token = jwt.sign(
+      { id: invitado._id, email: invitado.email }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      mensaje: 'Cuenta creada exitosamente',
+      token,
+      usuario: limpiarUsuario(invitado)
+    });
+
+  } catch (err) {
+    console.error('Error al convertir invitado:', err);
+    res.status(500).json({ mensaje: 'Error al crear cuenta' });
+  }
+};
+
 // ===================== CRUD USUARIOS ===================== //
 
 exports.obtenerUsuarios = async (req, res) => {

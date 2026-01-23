@@ -273,6 +273,8 @@ module.exports = app;
 
 // Para desarrollo local, mantén el listen solo cuando se ejecuta directamente
 if (require.main === module) {
+  require('./src/jobs/cleanupGuests');
+  
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
