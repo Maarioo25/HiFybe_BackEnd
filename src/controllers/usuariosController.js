@@ -120,7 +120,10 @@ exports.registrarUsuario = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     let finalAvatarUrl = foto_perfil;
     if (!foto_perfil || foto_perfil.trim() === "") {
-      finalAvatarUrl = "/avatars/default.jpg";
+      // Generar avatar con ui-avatars usando el nombre del usuario
+      const nombreCompleto = `${nombre}${apellidos ? ' ' + apellidos : ''}`;
+      const nombreEncoded = encodeURIComponent(nombreCompleto);
+      finalAvatarUrl = `https://ui-avatars.com/api/?name=${nombreEncoded}&background=a78bfa&color=fff&size=200&bold=true`;
     }
 
     const usuario = await Usuario.create({
